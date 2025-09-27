@@ -12,7 +12,7 @@ export const env = {
   
   // 應用程式配置
   app: {
-    name: process.env.NEXT_PUBLIC_APP_NAME || '誠信名錄',
+    name: process.env.NEXT_PUBLIC_APP_NAME || '詐騙獵人',
     version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   },
   

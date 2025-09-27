@@ -1,8 +1,8 @@
-# 誠信名錄 - 社會信用檔案管理平台
+# 詐騙獵人 - 社會信用檔案管理平台
 
 ## 專案簡介
 
-「誠信名錄」是一個社會信用檔案管理平台，透過合法途徑公開相關資訊，達到社會警示作用，促進誠信社會建設。
+「詐騙獵人」是一個社會信用檔案管理平台，透過合法途徑公開相關資訊，達到社會警示作用，促進誠信社會建設。
 
 ## 主要功能
 
@@ -34,7 +34,7 @@
 1. 複製專案
 ```bash
 git clone <repository-url>
-cd integrity-record-app
+cd fraud-hunter-app
 ```
 
 2. 安裝依賴
@@ -53,12 +53,12 @@ cp .env.example .env.local
 npm run dev
 ```
 
-5. 開啟瀏覽器訪問 `http://localhost:3000`
+5. 開啟瀏覽器訪問 `cdhttp://localhost:3000`
 
 ## 專案結構
 
 ```
-integrity-record-app/
+fraud-hunter-app/
 ├── src/
 │   ├── app/                 # Next.js App Router
 │   ├── components/          # React 組件

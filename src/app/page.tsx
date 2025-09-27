@@ -26,7 +26,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">誠信名錄</h1>
+              <h1 className="text-2xl font-bold text-gray-900">詐騙獵人</h1>
               <span className="ml-2 text-sm text-gray-500">社會信用檔案管理平台</span>
             </div>
             <div className="flex items-center space-x-4">
@@ -42,7 +42,7 @@ export default function HomePage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            建立誠信社會，從透明開始
+            獵殺詐騙，無所遁形
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             透過合法途徑公開相關資訊，達到社會警示作用，促進誠信社會建設
