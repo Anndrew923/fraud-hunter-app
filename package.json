@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --open",
+    "dev:fast": "node scripts/dev.js",
+    "dev:clean": "rm -rf .next && next dev --turbopack --open",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
