@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizeCss: true
+  },
+  // 確保靜態匯出時正確處理 CSS
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
   }
 };
 
