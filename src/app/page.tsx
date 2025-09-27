@@ -1,10 +1,11 @@
 'use client';
 
 import { useStore } from '@/store/useStore';
-import { useState } from 'react';
-import { MagnifyingGlassIcon, UserIcon, ChartBarIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { MagnifyingGlassIcon, UserIcon, ChartBarIcon, DocumentTextIcon, HomeIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { CourtJudgment } from '@/lib/crawlers/courtCrawler';
 import { WantedPerson } from '@/lib/crawlers/wantedCrawler';
+import { DashboardStats } from '@/lib/services/dashboardService';
 
 export default function HomePage() {
   const { 
@@ -21,6 +22,9 @@ export default function HomePage() {
     initializeSearchService
   } = useStore();
   const [searchType, setSearchType] = useState<'all' | 'judgments' | 'wanted'>('all');
+  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'judgments' | 'wanted' | 'settings'>('home');
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +57,27 @@ export default function HomePage() {
     }
   };
 
+  // 載入 165 儀表板資料
+  useEffect(() => {
+    const loadDashboardStats = async () => {
+      if (activeTab === 'home') {
+        setIsLoadingStats(true);
+        try {
+          const response = await fetch('/api/dashboard');
+          const data = await response.json();
+          if (data.success) {
+            setDashboardStats(data.stats);
+          }
+        } catch (error) {
+          console.error('載入儀表板資料失敗:', error);
+        } finally {
+          setIsLoadingStats(false);
+        }
+      }
+    };
+
+    loadDashboardStats();
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,18 +99,51 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            獵殺詐騙，無所遁形
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            透過合法途徑公開相關資訊，達到社會警示作用，促進誠信社會建設
-          </p>
-        </div>
+        {/* 根據 activeTab 顯示不同內容 */}
+        {activeTab === 'home' && (
+          <>
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                獵殺詐騙，無所遁形
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                透過合法途徑公開相關資訊，達到社會警示作用，促進誠信社會建設
+              </p>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'search' && (
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">搜尋功能</h2>
+            <p className="text-gray-600 mb-8">輸入關鍵字進行搜尋</p>
+          </div>
+        )}
+
+        {activeTab === 'judgments' && (
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">法院判決書查詢</h2>
+            <p className="text-gray-600 mb-8">查詢司法院公開的判決書資料</p>
+          </div>
+        )}
+
+        {activeTab === 'wanted' && (
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">通緝犯資料查詢</h2>
+            <p className="text-gray-600 mb-8">查詢警政署公開的通緝犯資訊</p>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">設定</h2>
+            <p className="text-gray-600 mb-8">個人設定與應用程式選項</p>
+          </div>
+        )}
 
 
-        {/* Search Section */}
+        {/* Search Section - 在所有標籤中顯示 */}
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="flex space-x-4">
@@ -133,38 +191,40 @@ export default function HomePage() {
           </form>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center mb-4">
-              <DocumentTextIcon className="h-8 w-8 text-blue-600 mr-3" />
-              <h3 className="text-lg font-bold text-gray-800">法院判決書查詢</h3>
+        {/* Features Grid - 只在首頁顯示 */}
+        {activeTab === 'home' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center mb-4">
+                <DocumentTextIcon className="h-8 w-8 text-blue-600 mr-3" />
+                <h3 className="text-lg font-bold text-gray-800">法院判決書查詢</h3>
+              </div>
+              <p className="text-gray-700 font-medium">
+                查詢司法院公開的判決書資料，了解相關法律案件資訊
+              </p>
             </div>
-            <p className="text-gray-700 font-medium">
-              查詢司法院公開的判決書資料，了解相關法律案件資訊
-            </p>
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center mb-4">
-              <UserIcon className="h-8 w-8 text-red-600 mr-3" />
-              <h3 className="text-lg font-bold text-gray-800">通緝犯資料查詢</h3>
+            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center mb-4">
+                <UserIcon className="h-8 w-8 text-red-600 mr-3" />
+                <h3 className="text-lg font-bold text-gray-800">通緝犯資料查詢</h3>
+              </div>
+              <p className="text-gray-700 font-medium">
+                查詢警政署公開的通緝犯資訊，提高社會安全意識
+              </p>
             </div>
-            <p className="text-gray-700 font-medium">
-              查詢警政署公開的通緝犯資訊，提高社會安全意識
-            </p>
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center mb-4">
-              <ChartBarIcon className="h-8 w-8 text-green-600 mr-3" />
-              <h3 className="text-lg font-bold text-gray-800">風險評估分析</h3>
+            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center mb-4">
+                <ChartBarIcon className="h-8 w-8 text-green-600 mr-3" />
+                <h3 className="text-lg font-bold text-gray-800">風險評估分析</h3>
+              </div>
+              <p className="text-gray-700 font-medium">
+                基於公開資料進行風險評估，提供客觀的信用分析
+              </p>
             </div>
-            <p className="text-gray-700 font-medium">
-              基於公開資料進行風險評估，提供客觀的信用分析
-            </p>
           </div>
-        </div>
+        )}
 
         {/* 搜尋結果 */}
         {searchResults.length > 0 && (
@@ -255,29 +315,91 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Stats Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">今日統計</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">500</div>
-              <div className="text-sm text-gray-700 font-medium">新增案件</div>
+        {/* Stats Section - 只在首頁顯示 */}
+        {activeTab === 'home' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">今日統計</h3>
+              {isLoadingStats && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  載入中...
+                </div>
+              )}
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">2.5億</div>
-              <div className="text-sm text-gray-700 font-medium">台幣損失</div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {dashboardStats?.newCases || 500}
+                </div>
+                <div className="text-sm text-gray-700 font-medium">新增案件</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  {dashboardStats?.totalLoss || '2.5億'}
+                </div>
+                <div className="text-sm text-gray-700 font-medium">台幣損失</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {dashboardStats?.queryCount || 1000}+
+                </div>
+                <div className="text-sm text-gray-700 font-medium">查詢次數</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {dashboardStats?.accuracyRate || 95}%
+                </div>
+                <div className="text-sm text-gray-700 font-medium">準確率</div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">1000+</div>
-              <div className="text-sm text-gray-700 font-medium">查詢次數</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">95%</div>
-              <div className="text-sm text-gray-700 font-medium">準確率</div>
-            </div>
+            {dashboardStats && (
+              <div className="mt-4 text-xs text-gray-500 text-center">
+                資料來源：<a 
+                  href="https://165dashboard.tw/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  165 反詐騙專線儀表板
+                </a>
+                <span className="ml-2">
+                  最後更新：{new Date(dashboardStats.lastUpdated).toLocaleString('zh-TW')}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </main>
+
+      {/* 底部導覽列 */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 md:hidden">
+        <div className="flex justify-around items-center">
+          {[
+            { key: 'home', label: '首頁', icon: HomeIcon },
+            { key: 'search', label: '搜尋', icon: MagnifyingGlassIcon },
+            { key: 'judgments', label: '判決書', icon: DocumentTextIcon },
+            { key: 'wanted', label: '通緝犯', icon: UserIcon },
+            { key: 'settings', label: '設定', icon: Cog6ToothIcon },
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key as any)}
+              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+                activeTab === key
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Icon className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">{label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* 為底部導覽列預留空間 */}
+      <div className="h-20 md:hidden"></div>
     </div>
   );
 }
