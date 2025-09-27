@@ -149,10 +149,10 @@ class DashboardService {
     
     // 根據位置推測資料類型
     const stats: DashboardStats = {
-      newCases: this.extractNumber(numbers[0]) || 500,
-      totalLoss: this.formatLoss(this.extractNumber(numbers[1]) || 250000000),
-      queryCount: this.extractNumber(numbers[2]) || 1000,
-      accuracyRate: this.extractNumber(numbers[3]) || 95,
+      newCases: this.extractNumber(numbers[0] || '') || 500,
+      totalLoss: this.formatLoss(this.extractNumber(numbers[1] || '') || 250000000),
+      queryCount: this.extractNumber(numbers[2] || '') || 1000,
+      accuracyRate: this.extractNumber(numbers[3] || '') || 95,
       lastUpdated: new Date()
     };
 
