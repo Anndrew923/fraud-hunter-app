@@ -29,8 +29,22 @@ class DashboardService {
         return this.cache;
       }
 
-      // 由於 CORS 限制，直接返回預設資料
-      // 在實際部署中，這應該通過伺服器端代理或 CORS 代理來解決
+      // 嘗試使用 CORS 代理獲取真實資料
+      try {
+        const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(this.baseUrl);
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        
+        if (data.contents) {
+          const scrapedData = this.parseHTML(data.contents);
+          this.cache = scrapedData;
+          return scrapedData;
+        }
+      } catch (proxyError) {
+        console.log('CORS 代理失敗，使用預設資料:', proxyError);
+      }
+
+      // 如果代理失敗，返回預設資料
       const defaultData = {
         stats: this.getDefaultStats(),
         source: 'default',
@@ -139,27 +153,116 @@ class DashboardService {
    * 解析 HTML 內容
    */
   private parseHTML(html: string): DashboardData {
-    // 使用正則表達式或 DOM 解析器提取資料
-    // 這裡需要根據實際的 HTML 結構調整
-    
-    // 範例：尋找包含數字的元素
-    const numberRegex = /(\d+(?:\.\d+)?[億萬]?)/g;
-    const numbers = html.match(numberRegex) || [];
-    
-    // 根據位置推測資料類型
-    const stats: DashboardStats = {
-      newCases: this.extractNumber(numbers[0] || '') || 500,
-      totalLoss: this.formatLoss(this.extractNumber(numbers[1] || '') || 250000000),
-      queryCount: this.extractNumber(numbers[2] || '') || 1000,
-      accuracyRate: this.extractNumber(numbers[3] || '') || 95,
-      lastUpdated: new Date()
-    };
+    try {
+      // 嘗試從 165 儀表板提取真實資料
+      const stats: DashboardStats = {
+        newCases: this.extractNewCases(html),
+        totalLoss: this.extractTotalLoss(html),
+        queryCount: this.extractQueryCount(html),
+        accuracyRate: this.extractAccuracyRate(html),
+        lastUpdated: new Date()
+      };
 
-    return {
-      stats,
-      source: 'scraping',
-      success: true
-    };
+      return {
+        stats,
+        source: 'scraping',
+        success: true
+      };
+    } catch (error) {
+      console.error('解析 HTML 失敗:', error);
+      return {
+        stats: this.getDefaultStats(),
+        source: 'default',
+        success: false,
+        error: 'HTML 解析失敗'
+      };
+    }
+  }
+
+  /**
+   * 提取新增案件數
+   */
+  private extractNewCases(html: string): number {
+    // 尋找包含案件數字的模式
+    const patterns = [
+      /新增案件[：:]\s*(\d+)/i,
+      /案件數[：:]\s*(\d+)/i,
+      /今日案件[：:]\s*(\d+)/i,
+      /(\d+)\s*件.*案件/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        return parseInt(match[1]) || 500;
+      }
+    }
+
+    return 500; // 預設值
+  }
+
+  /**
+   * 提取總損失金額
+   */
+  private extractTotalLoss(html: string): string {
+    // 尋找包含損失金額的模式
+    const patterns = [
+      /損失[：:]\s*(\d+(?:\.\d+)?[億萬]?)/i,
+      /金額[：:]\s*(\d+(?:\.\d+)?[億萬]?)/i,
+      /台幣損失[：:]\s*(\d+(?:\.\d+)?[億萬]?)/i,
+      /(\d+(?:\.\d+)?[億萬]?)\s*元.*損失/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return '2.5億'; // 預設值
+  }
+
+  /**
+   * 提取查詢次數
+   */
+  private extractQueryCount(html: string): number {
+    // 尋找包含查詢次數的模式
+    const patterns = [
+      /查詢[：:]\s*(\d+)/i,
+      /查詢次數[：:]\s*(\d+)/i,
+      /(\d+)\s*次.*查詢/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        return parseInt(match[1]) || 1000;
+      }
+    }
+
+    return 1000; // 預設值
+  }
+
+  /**
+   * 提取準確率
+   */
+  private extractAccuracyRate(html: string): number {
+    // 尋找包含準確率的模式
+    const patterns = [
+      /準確率[：:]\s*(\d+(?:\.\d+)?)%/i,
+      /準確[：:]\s*(\d+(?:\.\d+)?)%/i,
+      /(\d+(?:\.\d+)?)%\s*準確/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        return parseFloat(match[1]) || 95;
+      }
+    }
+
+    return 95; // 預設值
   }
 
   /**
