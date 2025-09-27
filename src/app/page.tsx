@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { MagnifyingGlassIcon, UserIcon, ChartBarIcon, DocumentTextIcon, HomeIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { CourtJudgment } from '@/lib/crawlers/courtCrawler';
 import { WantedPerson } from '@/lib/crawlers/wantedCrawler';
-import { DashboardStats } from '@/lib/services/dashboardService';
+import { DashboardStats, dashboardService } from '@/lib/services/dashboardService';
 
 export default function HomePage() {
   const { 
@@ -63,8 +63,7 @@ export default function HomePage() {
       if (activeTab === 'home') {
         setIsLoadingStats(true);
         try {
-          const response = await fetch('/api/dashboard');
-          const data = await response.json();
+          const data = await dashboardService.getDashboardData();
           if (data.success) {
             setDashboardStats(data.stats);
           }
