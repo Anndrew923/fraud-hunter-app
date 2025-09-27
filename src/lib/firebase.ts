@@ -6,12 +6,12 @@ import { getFunctions } from 'firebase/functions';
 
 // Firebase 配置
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyBaqSKULWdxVamJqyFQ8WMjKg1FxwgitYM",
+  authDomain: "fraud-hunter-app-99eb3.firebaseapp.com",
+  projectId: "fraud-hunter-app-99eb3",
+  storageBucket: "fraud-hunter-app-99eb3.firebasestorage.app",
+  messagingSenderId: "205176654815",
+  appId: "1:205176654815:web:9889103a77aaf5fc46d26a",
 };
 
 // 初始化 Firebase

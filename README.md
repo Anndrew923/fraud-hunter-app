@@ -42,10 +42,15 @@ cd fraud-hunter-app
 npm install
 ```
 
-3. 設定環境變數
+3. 設定 Firebase（推薦使用快速設定腳本）
 ```bash
-cp .env.example .env.local
-# 編輯 .env.local 填入 Firebase 配置
+npm run setup:firebase
+```
+
+或手動設定：
+```bash
+# 建立 .env.local 檔案並填入 Firebase 配置
+# 詳細步驟請參考 FIREBASE_SETUP.md
 ```
 
 4. 啟動開發伺服器
@@ -53,7 +58,17 @@ cp .env.example .env.local
 npm run dev
 ```
 
-5. 開啟瀏覽器訪問 `cdhttp://localhost:3000`
+5. 開啟瀏覽器訪問 `http://localhost:3000`
+
+### Firebase 設定
+
+詳細的 Firebase 設定步驟請參考 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)
+
+快速設定：
+1. 執行 `npm run setup:firebase`
+2. 按照提示輸入 Firebase 配置資訊
+3. 在瀏覽器中點擊「檢查配置」按鈕驗證設定
+4. 點擊「測試 Firebase」按鈕測試連線
 
 ## 專案結構
 

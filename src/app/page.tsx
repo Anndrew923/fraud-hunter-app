@@ -53,6 +53,7 @@ export default function HomePage() {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -83,6 +84,7 @@ export default function HomePage() {
           </p>
         </div>
 
+
         {/* Search Section */}
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleSearch} className="space-y-4">
@@ -93,7 +95,7 @@ export default function HomePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜尋姓名、案號或關鍵字..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500 font-medium"
                 />
               </div>
               <button
@@ -117,10 +119,10 @@ export default function HomePage() {
                   key={key}
                   type="button"
                   onClick={() => setSearchType(key as 'all' | 'judgments' | 'wanted')}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+                  className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors font-medium ${
                     searchType === key
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white text-blue-700 shadow-sm'
+                      : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -133,32 +135,32 @@ export default function HomePage() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <DocumentTextIcon className="h-8 w-8 text-blue-600 mr-3" />
-              <h3 className="text-lg font-semibold">法院判決書查詢</h3>
+              <h3 className="text-lg font-bold text-gray-800">法院判決書查詢</h3>
             </div>
-            <p className="text-gray-600">
+            <p className="text-gray-700 font-medium">
               查詢司法院公開的判決書資料，了解相關法律案件資訊
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <UserIcon className="h-8 w-8 text-red-600 mr-3" />
-              <h3 className="text-lg font-semibold">通緝犯資料查詢</h3>
+              <h3 className="text-lg font-bold text-gray-800">通緝犯資料查詢</h3>
             </div>
-            <p className="text-gray-600">
+            <p className="text-gray-700 font-medium">
               查詢警政署公開的通緝犯資訊，提高社會安全意識
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
               <ChartBarIcon className="h-8 w-8 text-green-600 mr-3" />
-              <h3 className="text-lg font-semibold">風險評估分析</h3>
+              <h3 className="text-lg font-bold text-gray-800">風險評估分析</h3>
             </div>
-            <p className="text-gray-600">
+            <p className="text-gray-700 font-medium">
               基於公開資料進行風險評估，提供客觀的信用分析
             </p>
           </div>
@@ -255,23 +257,23 @@ export default function HomePage() {
 
         {/* Stats Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold mb-4">今日統計</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">今日統計</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">500</div>
-              <div className="text-sm text-gray-600">新增案件</div>
+              <div className="text-sm text-gray-700 font-medium">新增案件</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">2.5億</div>
-              <div className="text-sm text-gray-600">台幣損失</div>
+              <div className="text-sm text-gray-700 font-medium">台幣損失</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">1000+</div>
-              <div className="text-sm text-gray-600">查詢次數</div>
+              <div className="text-sm text-gray-700 font-medium">查詢次數</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">95%</div>
-              <div className="text-sm text-gray-600">準確率</div>
+              <div className="text-sm text-gray-700 font-medium">準確率</div>
             </div>
           </div>
         </div>
