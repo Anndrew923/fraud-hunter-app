@@ -3,9 +3,23 @@
 import { useStore } from '@/store/useStore';
 import { useState } from 'react';
 import { MagnifyingGlassIcon, UserIcon, ChartBarIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { CourtJudgment } from '@/lib/crawlers/courtCrawler';
+import { WantedPerson } from '@/lib/crawlers/wantedCrawler';
 
 export default function HomePage() {
-  const { searchQuery, setSearchQuery, isLoading, setLoading } = useStore();
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    isLoading, 
+    setLoading,
+    searchResults,
+    searchStats,
+    setSearchResults,
+    setSearchStats,
+    addToSearchHistory,
+    searchService,
+    initializeSearchService
+  } = useStore();
   const [searchType, setSearchType] = useState<'all' | 'judgments' | 'wanted'>('all');
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -13,10 +27,30 @@ export default function HomePage() {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
-    // TODO: 實作搜尋邏輯
-    setTimeout(() => {
+    
+    try {
+      // 初始化搜尋服務
+      initializeSearchService();
+      
+      if (searchService) {
+        // 執行搜尋
+        const { results, stats } = await searchService.search(searchQuery, {
+          includeJudgments: searchType === 'all' || searchType === 'judgments',
+          includeWanted: searchType === 'all' || searchType === 'wanted'
+        });
+        
+        // 更新狀態
+        setSearchResults(results);
+        setSearchStats(stats);
+        addToSearchHistory(searchQuery, results, stats);
+        
+        console.log('搜尋完成:', { results: results.length, stats });
+      }
+    } catch (error) {
+      console.error('搜尋失敗:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -129,6 +163,95 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+
+        {/* 搜尋結果 */}
+        {searchResults.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                搜尋結果 ({searchResults.length} 筆)
+              </h3>
+              {searchStats && (
+                <div className="text-sm text-gray-500">
+                  判決書: {searchStats.judgmentCount} | 通緝犯: {searchStats.wantedCount} | 
+                  平均風險分數: {searchStats.averageRiskScore}
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-4">
+              {searchResults.map((result, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          result.type === 'judgment' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {result.type === 'judgment' ? '判決書' : '通緝犯'}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          相關性: {result.relevanceScore}%
+                        </span>
+                      </div>
+                      
+                      {result.type === 'judgment' ? (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-1">
+                            {(result.data as CourtJudgment).caseTitle}
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {(result.data as CourtJudgment).caseNumber} | {(result.data as CourtJudgment).court}
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            {(result.data as CourtJudgment).summary}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-1">
+                            {(result.data as WantedPerson).name}
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {(result.data as WantedPerson).gender} | {(result.data as WantedPerson).age}歲 | {(result.data as WantedPerson).crimeType}
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            {(result.data as WantedPerson).caseDetails}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="ml-4 text-right">
+                      <div className="text-sm font-medium text-gray-900">
+                        風險分數: {result.type === 'judgment' 
+                          ? (result.data as CourtJudgment).riskScore 
+                          : (result.data as WantedPerson).riskScore}
+                      </div>
+                      <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            (result.type === 'judgment' 
+                              ? (result.data as CourtJudgment).riskScore 
+                              : (result.data as WantedPerson).riskScore) > 70 ? 'bg-red-500' :
+                            (result.type === 'judgment' 
+                              ? (result.data as CourtJudgment).riskScore 
+                              : (result.data as WantedPerson).riskScore) > 40 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${result.type === 'judgment' 
+                            ? (result.data as CourtJudgment).riskScore 
+                            : (result.data as WantedPerson).riskScore}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
