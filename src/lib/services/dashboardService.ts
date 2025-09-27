@@ -79,7 +79,7 @@ class DashboardService {
             const data = await response.json();
             return this.parseAPIResponse(data);
           }
-        } catch (error) {
+        } catch {
           // 繼續嘗試下一個端點
           continue;
         }
@@ -119,13 +119,13 @@ class DashboardService {
   /**
    * 解析 API 回應
    */
-  private parseAPIResponse(data: any): DashboardData {
+  private parseAPIResponse(data: Record<string, unknown>): DashboardData {
     // 根據實際 API 結構調整
     const stats: DashboardStats = {
-      newCases: data.newCases || data.cases || data.totalCases || 0,
-      totalLoss: this.formatLoss(data.totalLoss || data.loss || data.amount || 0),
-      queryCount: data.queryCount || data.queries || data.totalQueries || 0,
-      accuracyRate: data.accuracyRate || data.accuracy || data.rate || 0,
+      newCases: (data.newCases as number) || (data.cases as number) || (data.totalCases as number) || 0,
+      totalLoss: this.formatLoss((data.totalLoss as number) || (data.loss as number) || (data.amount as number) || 0),
+      queryCount: (data.queryCount as number) || (data.queries as number) || (data.totalQueries as number) || 0,
+      accuracyRate: (data.accuracyRate as number) || (data.accuracy as number) || (data.rate as number) || 0,
       lastUpdated: new Date()
     };
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dashboardService } from '@/lib/services/dashboardService';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const data = await dashboardService.getDashboardData();
     
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 }
 
 // 支援 CORS 預檢請求
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

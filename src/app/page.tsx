@@ -384,7 +384,7 @@ export default function HomePage() {
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key as any)}
+              onClick={() => setActiveTab(key as 'home' | 'search' | 'judgments' | 'wanted' | 'settings')}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
                 activeTab === key
                   ? 'text-blue-600 bg-blue-50'

@@ -73,7 +73,7 @@ export class CourtCrawler {
   }
 
   // 生成模擬搜尋結果
-  private generateMockResults(query: string, options: Record<string, unknown>): CourtJudgment[] {
+  private generateMockResults(query: string, _options: Record<string, unknown>): CourtJudgment[] {
     const results: CourtJudgment[] = [];
     const courts = ['臺灣臺北地方法院', '臺灣新北地方法院', '臺灣士林地方法院'];
     const caseTypes = ['民事', '刑事', '行政'];

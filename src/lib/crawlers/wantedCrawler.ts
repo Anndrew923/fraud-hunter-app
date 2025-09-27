@@ -73,7 +73,7 @@ export class WantedCrawler {
   }
 
   // 生成模擬通緝犯搜尋結果
-  private generateMockWantedResults(query: string, options: Record<string, unknown>): WantedPerson[] {
+  private generateMockWantedResults(query: string, _options: Record<string, unknown>): WantedPerson[] {
     const results: WantedPerson[] = [];
     const crimeTypes = ['詐欺', '竊盜', '傷害', '妨害自由', '毒品'];
     const courts = ['臺灣臺北地方法院', '臺灣新北地方法院', '臺灣士林地方法院'];
