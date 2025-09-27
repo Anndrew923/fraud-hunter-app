@@ -52,7 +52,7 @@ export interface SearchRecord {
   query: string;
   results: number;
   timestamp: Date;
-  filters: Record<string, any>;
+  filters: Record<string, string | number | boolean>;
 }
 
 // 風險評估

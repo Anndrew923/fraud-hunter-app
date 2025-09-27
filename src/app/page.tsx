@@ -82,7 +82,7 @@ export default function HomePage() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setSearchType(key as any)}
+                  onClick={() => setSearchType(key as 'all' | 'judgments' | 'wanted')}
                   className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
                     searchType === key
                       ? 'bg-white text-blue-600 shadow-sm'
