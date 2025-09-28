@@ -167,21 +167,30 @@ async function performMultiStrategySearch(params) {
 
 // 直接搜尋司法院
 async function searchJudicialDirect(keyword, court, caseType, startDate, endDate, page) {
-  const searchUrl = 'https://arch.judicial.gov.tw/FJUD/FJUDQRY01_1.aspx';
+  const searchUrl = 'https://judgment.judicial.gov.tw/FJUD/FJUDQRY01_1.aspx';
   
-  // 建立搜尋表單資料
+  // 建立搜尋表單資料 - 根據司法院裁判書系統表單
   const formData = new URLSearchParams();
+  
+  // 案件類別 (Case Type) - 預設全選
   formData.append('v_court', court || '');
-  formData.append('v_sys', 'M'); // 刑事
+  formData.append('v_sys', 'M'); // 刑事案件
+  
+  // 裁判字號 (Judgment Number)
   formData.append('jud_year', '');
   formData.append('jud_case', '');
   formData.append('jud_no', '');
-  formData.append('jud_title', '');
-  formData.append('keyword', keyword);
+  
+  // 裁判期間 (Judgment Period)
   formData.append('sdate', startDate || '');
   formData.append('edate', endDate || '');
-  formData.append('jud_kind', '');
+  
+  // 全文內容 (Full Text Content) - 這是主要的搜尋欄位
   formData.append('kw', keyword);
+  formData.append('keyword', keyword);
+  
+  // 其他必要參數
+  formData.append('jud_kind', '');
   formData.append('searchkw', keyword);
 
   const response = await fetch(searchUrl, {

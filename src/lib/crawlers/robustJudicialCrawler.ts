@@ -48,6 +48,7 @@ export class RobustJudicialCrawler {
     
     // 搜尋策略列表（只使用真實資料，避免毀謗風險）
     const searchStrategies = [
+      () => this.searchWithSimpleJudicialFunction(params),
       () => this.searchWithOriginalFunction(params),
       () => this.searchWithRobustFunction(params),
       () => this.searchWithBackupFunction(params)
@@ -75,7 +76,29 @@ export class RobustJudicialCrawler {
   }
 
   /**
-   * 策略 1: 使用簡單搜尋 Function（最穩定）
+   * 策略 1: 使用簡化司法院搜尋 Function（最穩定）
+   */
+  private async searchWithSimpleJudicialFunction(params: JudicialSearchParams): Promise<JudicialSearchResult[]> {
+    console.log('🎯 使用簡化司法院搜尋 Function（最穩定）');
+    
+    const functionUrl = this.getFunctionUrl('simple-judicial-search');
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      console.log(`⚠️ 簡化司法院搜尋失敗: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.success ? data.results : [];
+  }
+
+  /**
+   * 策略 2: 使用簡單搜尋 Function
    */
   private async searchWithSimpleFunction(params: JudicialSearchParams): Promise<JudicialSearchResult[]> {
     console.log('🎯 使用簡單搜尋 Function（最穩定）');
