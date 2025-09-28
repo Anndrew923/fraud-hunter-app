@@ -43,7 +43,7 @@ export class DataCompressionService {
       const compressed = { ...judgment };
       
       if (compressed.fullText) {
-        compressed.fullText = await this.compressText(compressed.fullText);
+        compressed.fullText = await this.compressText(compressed.fullText as string);
         compressed._compressed = true;
         compressed._originalSize = originalSize;
       }
@@ -65,7 +65,7 @@ export class DataCompressionService {
       const decompressed = { ...judgment };
       
       if (decompressed.fullText && judgment._compressed) {
-        decompressed.fullText = await this.decompressText(decompressed.fullText);
+        decompressed.fullText = await this.decompressText(decompressed.fullText as string);
         delete decompressed._compressed;
         delete decompressed._originalSize;
       }
@@ -106,7 +106,7 @@ export class DataCompressionService {
         offset += chunk.length;
       }
       
-      return btoa(String.fromCharCode(...compressed));
+      return btoa(String.fromCharCode.apply(null, Array.from(compressed)));
     }
     
     // 降級方案：簡單的 Base64 編碼
@@ -197,7 +197,7 @@ export class DataCompressionService {
     let estimatedSavings = 0;
 
     data.forEach(item => {
-      const judgmentDate = new Date(item.judgmentDate);
+      const judgmentDate = new Date(item.judgmentDate as string);
       const size = JSON.stringify(item).length;
 
       if (item.debtStatus === 'paid' || item.status === 'cleared') {

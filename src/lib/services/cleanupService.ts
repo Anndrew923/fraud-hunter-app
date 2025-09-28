@@ -143,7 +143,7 @@ export class CleanupService {
       await this.cleanupInactiveData(result);
       
       // 更新時效狀態
-      await this.updateExpirationStatus(result);
+      await this.updateExpirationStatus();
       
       // 生成月度報告
       await this.generateMonthlyReport(result);
@@ -179,7 +179,7 @@ export class CleanupService {
       await this.cleanupExpiredData(result);
       
       // 封存舊資料
-      await this.archiveOldData(result);
+      await this.archiveOldData();
       
       // 生成年度報告
       await this.generateYearlyReport(result);
@@ -555,7 +555,7 @@ export class CleanupService {
   /**
    * 更新時效狀態
    */
-  private async updateExpirationStatus(_result: CleanupResult): Promise<void> {
+  private async updateExpirationStatus(): Promise<void> {
     // 實作時效狀態更新邏輯
     console.log('🕒 更新時效狀態');
   }
@@ -563,7 +563,7 @@ export class CleanupService {
   /**
    * 封存舊資料
    */
-  private async archiveOldData(_result: CleanupResult): Promise<void> {
+  private async archiveOldData(): Promise<void> {
     // 實作資料封存邏輯
     console.log('📦 封存舊資料');
   }

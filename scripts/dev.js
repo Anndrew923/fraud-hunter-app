@@ -4,33 +4,19 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 啟動詐騙獵人開發伺服器...\n');
+console.log('🚀 啟動詐騙獵人開發伺服器（穩定版）...\n');
 
-// 檢查並清理快取（安全模式）
-const nextDir = path.join(process.cwd(), '.next');
-if (fs.existsSync(nextDir)) {
-  console.log('🧹 清理舊的快取檔案...');
-  try {
-    fs.rmSync(nextDir, { recursive: true, force: true });
-  } catch (error) {
-    console.log('⚠️  快取清理失敗，但可以繼續運行:', error.message);
-  }
-}
-
-// 設定環境變數（優化啟動速度）
+// 設定環境變數（優化啟動速度，但保持穩定）
 process.env.NEXT_TELEMETRY_DISABLED = '1';
-process.env.NODE_OPTIONS = '--max-old-space-size=4096';
-process.env.NEXT_PRIVATE_DEBUG_CACHE = '0';
-process.env.NEXT_PRIVATE_DEBUG_MEMORY = '0';
-process.env.NEXT_PRIVATE_DEBUG_SWC = '0';
+process.env.NODE_OPTIONS = '--max-old-space-size=2048';
 
-// 啟動開發伺服器
-const devProcess = spawn('npx', ['next', 'dev', '--turbopack', '--port', '3000'], {
+// 啟動開發伺服器（使用標準 Next.js，不使用 Turbopack）
+const devProcess = spawn('npx', ['next', 'dev', '--port', '3000'], {
   stdio: 'inherit',
   shell: true,
   env: {
     ...process.env,
-    NODE_OPTIONS: '--max-old-space-size=4096'
+    NODE_OPTIONS: '--max-old-space-size=2048'
   }
 });
 
@@ -51,7 +37,7 @@ setTimeout(() => {
       console.log('✅ 瀏覽器已開啟');
     }
   });
-}, 2000); // 2秒後開啟瀏覽器
+}, 3000); // 3秒後開啟瀏覽器，給更多時間啟動
 
 devProcess.on('error', (err) => {
   console.error('❌ 啟動失敗:', err);
