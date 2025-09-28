@@ -29,50 +29,14 @@ exports.handler = async (event, context) => {
 
     console.log('🔍 搜尋關鍵字:', keyword);
 
-    // 第一步：獲取搜尋表單頁面
-    const formUrl = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-    console.log('🔄 第一步：獲取搜尋表單頁面...');
-    
-    const formResponse = await fetch(formUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-      }
-    });
-
-    if (!formResponse.ok) {
-      throw new Error(`獲取表單失敗: ${formResponse.status} ${formResponse.statusText}`);
-    }
-
-    const formHtml = await formResponse.text();
-    console.log('📄 表單頁面 HTML 長度:', formHtml.length);
-
-    // 提取 ViewState 和相關參數
-    const viewStateMatch = formHtml.match(/name="__VIEWSTATE" id="__VIEWSTATE" value="([^"]*)"/);
-    const viewStateGeneratorMatch = formHtml.match(/name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="([^"]*)"/);
-    const eventValidationMatch = formHtml.match(/name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="([^"]*)"/);
-
-    const viewState = viewStateMatch ? viewStateMatch[1] : '';
-    const viewStateGenerator = viewStateGeneratorMatch ? viewStateGeneratorMatch[1] : '';
-    const eventValidation = eventValidationMatch ? eventValidationMatch[1] : '';
-
-    console.log('🔍 提取的參數:');
-    console.log('  - ViewState:', viewState ? '已獲取' : '未獲取');
-    console.log('  - ViewStateGenerator:', viewStateGenerator ? '已獲取' : '未獲取');
-    console.log('  - EventValidation:', eventValidation ? '已獲取' : '未獲取');
-
-    // 第二步：提交搜尋表單
+    // 使用您提供的cURL請求中的完整參數
     const searchUrl = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-    console.log('🔄 第二步：提交搜尋表單...');
+    console.log('🔄 使用預設參數進行搜尋...');
     
     const formData = new URLSearchParams();
-    formData.append('__VIEWSTATE', viewState);
-    formData.append('__VIEWSTATEGENERATOR', viewStateGenerator);
-    formData.append('__EVENTVALIDATION', eventValidation);
+    formData.append('__VIEWSTATE', 'uaUzV7jsxyKFfC6Q8kJmy3co0xqogaP/W3gE1m/706hARdy7WugrIdEBuAEPBVd95Wc70xX45cgpALNTnZ/Oi3yt7l0Z64P+sB7wpfqNcNGi0qsXV+QhUQmV8j8yKJXqu/BHbVo1yEkPzvagl78qvMRM2vdcIP2HTg/yEv323uTp/+BAY8kSDOWUWG0awLpkU7VLR0sPld+bSHXTHO5B516Ig1XXy2h3Yd0YGl0bOm4jbQltc/NXOP5NMA5CZozocm1dZJGa+T3lghn+ECSh6CegAIzPqL//U2jGh1ICvym0npjdHyPTb+GODIpKa7ISNxyrP+tkS+h7Ax9ArUOJMXZTgg90PT4JnNis9Afq5GRATmL3xe/SKijrJ6E3VbXClQlKMilVAGrrT8qFnbvw7sqckLF7g6WEZ/acv0dOYfsz4ArS3A17lH5c+u7rl67Et+reFm9jhEwJtQaiakUK13Yz2mA=');
+    formData.append('__VIEWSTATEGENERATOR', '0FCFF17D');
+    formData.append('__EVENTVALIDATION', '3rKZAEUqQsjHs96POyG00sq1HDKlmxc0XktzLbVkn2B30y9vhB+lG7EQA4xogWHG02Mn2k82Uq335epudDYNZgpzDlc=');
     formData.append('txtKW', keyword);
     formData.append('judtype', 'JUDBOOK');
     formData.append('ctl00$cp_content$btnSimpleQry', '送出查詢');
