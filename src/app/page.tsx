@@ -6,6 +6,7 @@ import { MagnifyingGlassIcon, UserIcon, ChartBarIcon, DocumentTextIcon, HomeIcon
 import { CourtJudgment } from '@/lib/crawlers/courtCrawler';
 import { WantedPerson } from '@/lib/crawlers/wantedCrawler';
 import { DashboardStats, dashboardService } from '@/lib/services/dashboardService';
+import { CleanRecord } from '@/lib/services/searchService';
 
 export default function HomePage() {
   const { 
@@ -149,21 +150,6 @@ export default function HomePage() {
     }
   };
 
-  // 調試 HTML 功能
-  const handleDebugHTML = async () => {
-    setTestResult('調試中...');
-    try {
-      const result = await dashboardService.debugHTML();
-      if (result.success && result.html) {
-        setTestResult(`${result.message}\n\nHTML 預覽：\n${result.html.substring(0, 500)}...`);
-        console.log('完整 HTML:', result.html);
-      } else {
-        setTestResult(`調試失敗：${result.message}`);
-      }
-    } catch (error) {
-      setTestResult(`調試異常：${error}`);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -233,7 +219,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {activeTab === 'judgments' && (
+        {activeTab === 'search' && (
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">法院判決書查詢</h2>
             <p className="text-gray-600 mb-8">查詢司法院公開的判決書資料</p>

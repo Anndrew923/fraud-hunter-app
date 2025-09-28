@@ -19,10 +19,14 @@ export interface JudicialSearchResult {
   detailUrl: string;
 }
 
-export interface JudicialDetailResult extends CourtJudgment {
+export interface JudicialDetailResult {
+  caseTitle: string;
   caseNumber: string;
+  court: string;
   judgmentDate: string;
   caseReason: string;
+  summary: string;
+  riskScore: number;
   plaintiff?: string;
   defendant?: string;
   mainRuling: string;
@@ -162,7 +166,7 @@ export class JudicialCrawler {
     const results: JudicialSearchResult[] = [];
     
     // 使用正則表達式解析搜尋結果表格
-    const tableRegex = /<table[^>]*class="table"[^>]*>(.*?)<\/table>/s;
+    const tableRegex = /<table[^>]*class="table"[^>]*>([\s\S]*?)<\/table>/;
     const tableMatch = html.match(tableRegex);
     
     if (!tableMatch) {
@@ -172,7 +176,7 @@ export class JudicialCrawler {
     const tableHtml = tableMatch[1];
     
     // 解析每一行結果
-    const rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;
+    const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
     const rows = tableHtml.match(rowRegex) || [];
     
     for (const row of rows) {

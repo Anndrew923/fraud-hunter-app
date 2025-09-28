@@ -5,7 +5,7 @@ import { judicialCrawler, JudicialSearchParams } from '../crawlers/judicialCrawl
 
 export interface SearchResult {
   type: 'judgment' | 'wanted' | 'clean';
-  data: CourtJudgment | WantedPerson | CleanRecord;
+  data: CourtJudgment | WantedPerson | CleanRecord | any;
   relevanceScore: number;
 }
 
