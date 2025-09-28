@@ -66,14 +66,14 @@ export default function HomePage() {
           console.warn('司法院搜尋失敗，使用備用搜尋:', judicialError);
           
           // 如果司法院搜尋失敗，回退到原本的搜尋方式
-          const { results, stats } = await searchService.search(searchQuery, {
-            includeJudgments: searchType === 'all' || searchType === 'judgments',
-            includeWanted: searchType === 'all' || searchType === 'wanted'
-          });
-          
-          setSearchResults(results);
-          setSearchStats(stats);
-          addToSearchHistory(searchQuery, results, stats);
+        const { results, stats } = await searchService.search(searchQuery, {
+          includeJudgments: searchType === 'all' || searchType === 'judgments',
+          includeWanted: searchType === 'all' || searchType === 'wanted'
+        });
+        
+        setSearchResults(results);
+        setSearchStats(stats);
+        addToSearchHistory(searchQuery, results, stats);
         }
         
         console.log('搜尋完成');
@@ -156,7 +156,7 @@ export default function HomePage() {
           setLoadingProgress(100);
           setTimeout(() => {
             setIsLoadingModalVisible(false);
-            setIsLoadingStats(false);
+          setIsLoadingStats(false);
             setIsDashboardLoading(false);
             setLoadingProgress(0);
           }, 200); // 減少延遲時間
@@ -356,7 +356,7 @@ export default function HomePage() {
 
         {activeTab === 'settings' && (
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8">
+          <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">設定</h2>
               <p className="text-gray-400">個人設定與應用程式選項</p>
             </div>
@@ -393,52 +393,53 @@ export default function HomePage() {
             </div>
             
             <form onSubmit={handleSearch} className="space-y-6">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+              {/* 手機版優化：搜尋框和按鈕佈局 */}
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="例如：張三、112年度民字第123號、某某公司..."
-                    className="w-full px-6 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-white placeholder-gray-400 font-medium text-lg"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-8 py-4 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 flex items-center space-x-3 font-bold text-lg shadow-lg border border-red-500"
-                >
-                  <MagnifyingGlassIcon className="h-6 w-6" />
-                  <span>{isLoading ? '搜尋中...' : '開始獵殺'}</span>
-                </button>
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-white placeholder-gray-400 font-medium text-base sm:text-lg"
+                />
               </div>
-              
-              {/* Search Type Tabs - 暗黑肅殺風格 */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                  className="px-4 sm:px-8 py-3 sm:py-4 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 flex items-center justify-center space-x-2 sm:space-x-3 font-bold text-sm sm:text-lg shadow-lg border border-red-500 whitespace-nowrap"
+              >
+                  <MagnifyingGlassIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span>{isLoading ? '搜尋中...' : '開始獵殺'}</span>
+              </button>
+            </div>
+            
+              {/* Search Type Tabs - 暗黑肅殺風格，手機版優化 */}
               <div className="flex space-x-2 bg-gray-900 p-2 rounded-xl border border-gray-700">
                 {[
                   { key: 'all', label: '全部搜尋', icon: MagnifyingGlassIcon, desc: '綜合查詢' },
                   { key: 'judgments', label: '法院判決', icon: DocumentTextIcon, desc: '法律案件' },
                   { key: 'wanted', label: '通緝犯', icon: UserIcon, desc: '在逃人員' },
                 ].map(({ key, label, icon: Icon, desc }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setSearchType(key as 'all' | 'judgments' | 'wanted')}
-                    className={`flex-1 flex flex-col items-center justify-center space-y-1 py-3 px-4 rounded-lg transition-all font-medium ${
-                      searchType === key
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSearchType(key as 'all' | 'judgments' | 'wanted')}
+                    className={`flex-1 flex flex-col items-center justify-center space-y-1 py-3 px-2 sm:px-4 rounded-lg transition-all font-medium ${
+                    searchType === key
                         ? 'bg-red-600 text-white shadow-lg transform scale-105 border border-red-500'
                         : 'text-gray-400 hover:text-white hover:bg-gray-800 border border-transparent'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="text-sm font-semibold">{label}</span>
-                    <span className="text-xs opacity-75">{desc}</span>
-                  </button>
-                ))}
-              </div>
-            </form>
-          </div>
+                  }`}
+                >
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-xs sm:text-sm font-semibold leading-tight">{label}</span>
+                    <span className="text-xs opacity-75 leading-tight hidden sm:block">{desc}</span>
+                </button>
+              ))}
+            </div>
+          </form>
         </div>
+            </div>
 
 
         {/* 搜尋結果 - 暗黑肅殺風 */}
@@ -536,17 +537,17 @@ export default function HomePage() {
                             result.type === 'clean' 
                               ? 'bg-green-600'
                               : (result.type === 'judgment' 
-                                ? (result.data as CourtJudgment).riskScore 
-                                : (result.data as WantedPerson).riskScore) > 70 ? 'bg-red-500' :
-                              (result.type === 'judgment' 
-                                ? (result.data as CourtJudgment).riskScore 
-                                : (result.data as WantedPerson).riskScore) > 40 ? 'bg-yellow-500' : 'bg-green-500'
+                              ? (result.data as CourtJudgment).riskScore 
+                              : (result.data as WantedPerson).riskScore) > 70 ? 'bg-red-500' :
+                            (result.type === 'judgment' 
+                              ? (result.data as CourtJudgment).riskScore 
+                              : (result.data as WantedPerson).riskScore) > 40 ? 'bg-yellow-500' : 'bg-green-500'
                           }`}
                           style={{ width: `${result.type === 'clean' 
                             ? 100
                             : result.type === 'judgment' 
-                              ? (result.data as CourtJudgment).riskScore 
-                              : (result.data as WantedPerson).riskScore}%` }}
+                            ? (result.data as CourtJudgment).riskScore 
+                            : (result.data as WantedPerson).riskScore}%` }}
                         ></div>
                       </div>
                     </div>
@@ -691,7 +692,7 @@ export default function HomePage() {
         message="正在獲取最新的 165 反詐騙數據，請稍候..."
         progress={loadingProgress}
       />
-      </div>
+    </div>
     </ErrorBoundary>
   );
 }
