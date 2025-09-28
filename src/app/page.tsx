@@ -96,7 +96,10 @@ export default function HomePage() {
         setLoadingProgress(0);
         
         try {
-          console.log('📊 開始載入真實165儀表板資料...');
+          // 只在開發環境下記錄詳細日誌
+          if (process.env.NODE_ENV === 'development') {
+            console.log('📊 開始載入165儀表板資料...');
+          }
           
           // 智能進度更新：基於實際載入階段
           const progressInterval = setInterval(() => {
@@ -116,10 +119,11 @@ export default function HomePage() {
           
           if (data.success) {
             setDashboardStats(data.stats);
-            console.log('📊 真實儀表板資料載入成功:', data.stats);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('📊 儀表板資料載入成功:', data.stats);
+            }
           } else {
-            console.warn('📊 儀表板資料載入失敗，使用預設值:', data.error);
-            // 如果真實數據載入失敗，使用預設值
+            // 靜默處理失敗，直接使用預設值
             const defaultStats = {
               dailyCases: 328,
               newCases: 15,
@@ -133,9 +137,8 @@ export default function HomePage() {
             };
             setDashboardStats(defaultStats);
           }
-        } catch (error) {
-          console.error('載入儀表板資料失敗:', error);
-          // 錯誤時使用預設值
+        } catch {
+          // 靜默處理錯誤，避免控制台噪音
           const defaultStats = {
             dailyCases: 328,
             newCases: 15,

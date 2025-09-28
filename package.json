@@ -9,6 +9,8 @@
     "cleanup": "node scripts/cleanup.js",
     "quick": "node scripts/quick-start.js",
     "build": "next build",
+    "smart-build": "node scripts/smart-build.js",
+    "check-status": "node scripts/check-status.js",
     "start": "next start",
     "lint": "eslint",
     "setup:firebase": "node scripts/setup-firebase.js",

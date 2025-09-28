@@ -22,7 +22,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
     // 靜默記錄錯誤，避免控制台噪音
     console.error('ErrorBoundary 捕獲錯誤:', error.message);
   }
@@ -60,7 +60,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 }
 
 // 預設錯誤頁面組件
-export function DefaultErrorFallback({ error, resetError }: { error: Error; resetError: () => void }) {
+export function DefaultErrorFallback({ error: _error, resetError }: { error: Error; resetError: () => void }) {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
       <div className="text-center p-8 max-w-md">
