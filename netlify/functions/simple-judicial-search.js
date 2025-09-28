@@ -75,7 +75,7 @@ exports.handler = async (event, context) => {
     formData.append('__EVENTVALIDATION', eventValidation);
     formData.append('txtKW', keyword);
     formData.append('judtype', 'JUDBOOK');
-    formData.append('ctl00$cp_content$btnSubmit', '送出查詢');
+    formData.append('ctl00$cp_content$btnSimpleQry', '送出查詢');
 
     const response = await fetch(searchUrl, {
       method: 'POST',
