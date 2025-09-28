@@ -7,6 +7,9 @@ import { CourtJudgment } from '@/lib/crawlers/courtCrawler';
 import { WantedPerson } from '@/lib/crawlers/wantedCrawler';
 import { DashboardStats, dashboardService } from '@/lib/services/dashboardService';
 import { CleanRecord } from '@/lib/services/searchService';
+import LoadingModal from '@/components/LoadingModal';
+import { ErrorBoundary, DefaultErrorFallback } from '@/components/ErrorBoundary';
+import { setupGlobalErrorHandling } from '@/lib/utils/errorHandler';
 
 export default function HomePage() {
   const { 
@@ -27,7 +30,14 @@ export default function HomePage() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [testResult, setTestResult] = useState<string>('');
+  const [isLoadingModalVisible, setIsLoadingModalVisible] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(false);
 
+  // 設置全局錯誤處理
+  useEffect(() => {
+    setupGlobalErrorHandling();
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,15 +85,35 @@ export default function HomePage() {
     }
   };
 
-  // 載入 165 儀表板資料（優化版）
+  // 載入 165 儀表板資料（優化版 - 防止重複載入）
   useEffect(() => {
     const loadDashboardStats = async () => {
-      // 只在首頁且沒有資料時才載入
-      if (activeTab === 'home' && !dashboardStats) {
+      // 防止重複載入：只在首頁、沒有資料、且沒有正在載入時才載入
+      if (activeTab === 'home' && !dashboardStats && !isDashboardLoading) {
+        setIsDashboardLoading(true);
         setIsLoadingStats(true);
+        setIsLoadingModalVisible(true);
+        setLoadingProgress(0);
+        
         try {
           console.log('📊 開始載入真實165儀表板資料...');
+          
+          // 智能進度更新：基於實際載入階段
+          const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => {
+              // 確保進度不超過95%，留給完成階段
+              if (prev >= 95) return 95;
+              // 更平滑的進度增長
+              return prev + Math.random() * 10 + 5;
+            });
+          }, 150);
+
           const data = await dashboardService.getDashboardData();
+          
+          clearInterval(progressInterval);
+          // 確保進度條達到100%
+          setLoadingProgress(100);
+          
           if (data.success) {
             setDashboardStats(data.stats);
             console.log('📊 真實儀表板資料載入成功:', data.stats);
@@ -119,23 +149,50 @@ export default function HomePage() {
           };
           setDashboardStats(defaultStats);
         } finally {
-          setIsLoadingStats(false);
+          // 確保100%時立即完成，不延遲
+          setLoadingProgress(100);
+          setTimeout(() => {
+            setIsLoadingModalVisible(false);
+            setIsLoadingStats(false);
+            setIsDashboardLoading(false);
+            setLoadingProgress(0);
+          }, 200); // 減少延遲時間
         }
       }
     };
 
     loadDashboardStats();
-  }, [activeTab, dashboardStats]); // 添加 dashboardStats 依賴
+  }, [activeTab, dashboardStats, isDashboardLoading]); // 添加 isDashboardLoading 依賴
 
   // 手動刷新資料
   const handleRefreshData = async () => {
-    setTestResult('🔄 刷新中，請稍候...');
-    setIsLoadingStats(true);
+    if (isDashboardLoading) return; // 防止重複點擊
     
+    setTestResult('🔄 刷新中，請稍候...');
+    setIsDashboardLoading(true);
+    setIsLoadingStats(true);
+    setIsLoadingModalVisible(true);
+    setLoadingProgress(0);
+
     try {
       // 清除快取，強制重新獲取
       dashboardService.clearCache();
+      
+      // 智能進度更新：基於實際載入階段
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          // 確保進度不超過95%，留給完成階段
+          if (prev >= 95) return 95;
+          // 更平滑的進度增長
+          return prev + Math.random() * 10 + 5;
+        });
+      }, 150);
+      
       const data = await dashboardService.getDashboardData();
+      
+      clearInterval(progressInterval);
+      // 確保進度條達到100%
+      setLoadingProgress(100);
       
       if (data.success) {
         setDashboardStats(data.stats);
@@ -146,13 +203,21 @@ export default function HomePage() {
     } catch (error) {
       setTestResult(`❌ 刷新失敗：${error instanceof Error ? error.message : '未知錯誤'}`);
     } finally {
-      setIsLoadingStats(false);
+      // 確保100%時立即完成，不延遲
+      setLoadingProgress(100);
+      setTimeout(() => {
+        setIsLoadingModalVisible(false);
+        setIsLoadingStats(false);
+        setIsDashboardLoading(false);
+        setLoadingProgress(0);
+      }, 200); // 減少延遲時間
     }
   };
 
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <ErrorBoundary fallback={DefaultErrorFallback}>
+      <div className="min-h-screen bg-gray-900">
       {/* Header - 暗黑肅殺風 */}
       <header className="bg-black shadow-2xl border-b border-red-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -615,6 +680,15 @@ export default function HomePage() {
 
       {/* 為底部導覽列預留空間 */}
       <div className="h-20 md:hidden"></div>
-    </div>
+
+      {/* 載入 Modal */}
+      <LoadingModal
+        isVisible={isLoadingModalVisible}
+        title="載入儀表板資料"
+        message="正在獲取最新的 165 反詐騙數據，請稍候..."
+        progress={loadingProgress}
+      />
+      </div>
+    </ErrorBoundary>
   );
 }

@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
   // 開發環境優化
   ...(process.env.NODE_ENV === 'development' && {
     // 開發環境專用優化
-    swcMinify: false, // 開發時關閉 SWC 壓縮以提升速度
     compress: false,   // 開發時關閉壓縮
   }),
   // 生產環境優化

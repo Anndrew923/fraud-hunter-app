@@ -38,30 +38,40 @@ class DashboardService {
 
       console.log('🔄 開始獲取 165 儀表板資料...');
 
-      // 嘗試多種方法獲取資料，添加超時機制
+      // 優化：並行嘗試多種方法，使用更短的超時時間
       const methods = [
-        () => this.fetchViaServerlessFunction(),
-        () => this.fetchViaProxyServices(),
-        () => this.fetchViaAPI()
+        { name: 'Proxy', fn: () => this.fetchViaProxyServices(), timeout: 2000 },
+        { name: 'API', fn: () => this.fetchViaAPI(), timeout: 2000 }
+        // 移除 Serverless Function，因為靜態匯出模式下不支援
       ];
 
-      for (const method of methods) {
+      // 並行執行所有方法，取最快成功的那個
+      const promises = methods.map(async ({ name, fn, timeout }) => {
         try {
-          // 為每個方法添加5秒超時
           const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('方法執行超時')), 5000);
+            setTimeout(() => reject(new Error(`${name} 超時`)), timeout);
           });
 
-          const result = await Promise.race([method(), timeoutPromise]);
+          const result = await Promise.race([fn(), timeoutPromise]);
           if (result.success) {
-            console.log('✅ 成功獲取資料，來源:', result.source);
-            this.cache = result;
+            console.log(`✅ ${name} 成功獲取資料`);
             return result;
           }
+          throw new Error(`${name} 失敗`);
         } catch (error) {
-          console.log('❌ 方法失敗:', error);
-          continue;
+          console.log(`❌ ${name} 失敗:`, error);
+          throw error;
         }
+      });
+
+      try {
+        // 等待第一個成功的方法
+        const result = await Promise.any(promises);
+        this.cache = result;
+        return result;
+      } catch (error) {
+        console.log('❌ 所有方法都失敗，使用預設資料');
+        // 不拋出錯誤，直接使用預設資料
       }
 
       // 如果所有方法都失敗，返回預設資料
@@ -88,45 +98,11 @@ class DashboardService {
   }
 
   /**
-   * 透過 Serverless Function 獲取資料
+   * 透過 Serverless Function 獲取資料（靜態匯出模式下不支援）
    */
   private async fetchViaServerlessFunction(): Promise<DashboardData> {
-    try {
-      console.log('🔄 嘗試透過 Serverless Function 獲取資料...');
-      
-      // 使用 Netlify Functions 或其他 Serverless 平台
-      const functionUrl = '/api/fetch-dashboard';
-      
-      // 添加超時控制
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超時
-      
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: this.baseUrl,
-          timestamp: Date.now()
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        return this.parseAPIResponse(data);
-      }
-      
-      throw new Error(`Serverless Function 回應錯誤: ${response.status}`);
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Serverless Function 請求超時');
-      }
-      throw new Error(`Serverless Function 失敗: ${error}`);
-    }
+    // 靜態匯出模式下不支援 Serverless Function
+    throw new Error('靜態匯出模式下不支援 Serverless Function');
   }
 
   /**
@@ -190,7 +166,8 @@ class DashboardService {
             console.log(`❌ 代理服務回應錯誤: ${response.status}`);
           }
         } catch (proxyError) {
-          console.log(`❌ 代理服務 ${proxy} 失敗:`, proxyError instanceof Error ? proxyError.message : String(proxyError));
+          // 靜默處理代理服務錯誤，避免控制台噪音
+          console.log(`❌ 代理服務 ${proxy} 失敗`);
           continue;
         }
       }
@@ -413,28 +390,39 @@ class DashboardService {
     console.log('🔍 開始解析總損失金額...');
     
     try {
-      // 簡化正則表達式，避免性能問題
+      // 更精確的165儀表板金額解析模式
       const patterns = [
-        // 簡單有效的模式
-        /損失金額[^>]*>([^<]+)/i,
-        /財產損失[^>]*>([^<]+)/i,
-        /(\d+(?:,\d+)*(?:\.\d+)?[億萬]?)/i
+        // 165儀表板常見格式
+        /累計損失[^>]*>([^<]*\d+[^<]*)/i,
+        /總損失[^>]*>([^<]*\d+[^<]*)/i,
+        /財產損失[^>]*>([^<]*\d+[^<]*)/i,
+        /損失金額[^>]*>([^<]*\d+[^<]*)/i,
+        // 數字格式匹配
+        /(\d+(?:,\d+)*(?:\.\d+)?[億萬千]?元?)/i,
+        // 表格中的金額
+        /<td[^>]*>([^<]*\d+[^<]*[億萬千]?[^<]*)<\/td>/i
       ];
 
       for (const pattern of patterns) {
         const match = html.match(pattern);
-        if (match && match[1] && match[1].trim().length > 0) {
-          const value = match[1].trim();
-          console.log('✅ 找到總損失金額:', value);
-          return value;
+        if (match && match[1]) {
+          let value = match[1].trim();
+          // 清理HTML標籤
+          value = value.replace(/<[^>]*>/g, '').trim();
+          
+          // 驗證是否包含數字
+          if (value && /\d/.test(value) && value.length > 2) {
+            console.log('✅ 找到總損失金額:', value);
+            return value;
+          }
         }
       }
 
       console.log('❌ 未找到總損失金額，使用預設值');
-      return '1億7,395.4萬';
+      return '1億7,395.4萬元';
     } catch (error) {
       console.error('解析總損失金額時發生錯誤:', error);
-      return '1億7,395.4萬';
+      return '1億7,395.4萬元';
     }
   }
 
@@ -445,27 +433,39 @@ class DashboardService {
     console.log('🔍 開始解析每日損失金額...');
     
     try {
-      // 簡化正則表達式，避免性能問題
+      // 更精確的165儀表板每日損失解析模式
       const patterns = [
-        /每日損失[^>]*>([^<]+)/i,
-        /今日損失[^>]*>([^<]+)/i,
-        /(\d+(?:,\d+)*(?:\.\d+)?[億萬]?)/i
+        // 165儀表板常見格式
+        /今日損失[^>]*>([^<]*\d+[^<]*)/i,
+        /當日損失[^>]*>([^<]*\d+[^<]*)/i,
+        /每日損失[^>]*>([^<]*\d+[^<]*)/i,
+        /本日損失[^>]*>([^<]*\d+[^<]*)/i,
+        // 數字格式匹配
+        /(\d+(?:,\d+)*(?:\.\d+)?[億萬千]?元?)/i,
+        // 表格中的金額
+        /<td[^>]*>([^<]*\d+[^<]*[億萬千]?[^<]*)<\/td>/i
       ];
 
       for (const pattern of patterns) {
         const match = html.match(pattern);
-        if (match && match[1] && match[1].trim().length > 0) {
-          const value = match[1].trim();
-          console.log('✅ 找到每日損失金額:', value);
-          return value;
+        if (match && match[1]) {
+          let value = match[1].trim();
+          // 清理HTML標籤
+          value = value.replace(/<[^>]*>/g, '').trim();
+          
+          // 驗證是否包含數字
+          if (value && /\d/.test(value) && value.length > 2) {
+            console.log('✅ 找到每日損失金額:', value);
+            return value;
+          }
         }
       }
 
       console.log('❌ 未找到每日損失金額，使用預設值');
-      return '1億7,395.4萬';
+      return '1億7,395.4萬元';
     } catch (error) {
       console.error('解析每日損失金額時發生錯誤:', error);
-      return '1億7,395.4萬';
+      return '1億7,395.4萬元';
     }
   }
 
