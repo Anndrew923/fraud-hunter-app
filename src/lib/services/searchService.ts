@@ -2,6 +2,7 @@
 import { CourtCrawler, CourtJudgment } from '../crawlers/courtCrawler';
 import { WantedCrawler, WantedPerson } from '../crawlers/wantedCrawler';
 import { judicialCrawler, JudicialSearchParams } from '../crawlers/judicialCrawler';
+import { RobustJudicialCrawler } from '../crawlers/robustJudicialCrawler';
 
 export interface SearchResult {
   type: 'judgment' | 'wanted' | 'clean';
@@ -40,6 +41,7 @@ export interface SearchStats {
 export class SearchService {
   private courtCrawler: CourtCrawler;
   private wantedCrawler: WantedCrawler;
+  private robustJudicialCrawler: RobustJudicialCrawler;
   private searchHistory: Array<{
     query: string;
     results: SearchResult[];
@@ -50,6 +52,7 @@ export class SearchService {
   constructor() {
     this.courtCrawler = new CourtCrawler();
     this.wantedCrawler = new WantedCrawler();
+    this.robustJudicialCrawler = new RobustJudicialCrawler();
   }
 
   // 綜合搜尋
@@ -186,19 +189,19 @@ export class SearchService {
     return await this.wantedCrawler.getWantedPersonByName(name);
   }
 
-  // 使用司法院法學資料檢索系統搜尋判決書
+  // 使用強健搜尋系統搜尋司法院判決書 - 讓詐騙犯無所遁形！
   async searchJudicialJudgments(params: JudicialSearchParams) {
     try {
-      console.log('開始司法院判決書搜尋:', params);
+      console.log('🔥 啟動強健搜尋系統 - 讓詐騙犯無所遁形！', params);
       
-      // 搜尋判決書列表
-      const searchResults = await judicialCrawler.searchJudgments(params);
+      // 使用強健搜尋系統搜尋判決書列表
+      const searchResults = await this.robustJudicialCrawler.searchJudgments(params);
       
       // 取得前5筆的詳細內容
       const detailedResults = await Promise.all(
         searchResults.slice(0, 5).map(async (result) => {
           try {
-            const detail = await judicialCrawler.getJudgmentDetail(result.detailUrl);
+            const detail = await this.robustJudicialCrawler.getJudgmentDetail(result.detailUrl);
             return {
               type: 'judgment' as const,
               data: detail,

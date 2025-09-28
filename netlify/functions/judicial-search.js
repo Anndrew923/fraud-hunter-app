@@ -54,22 +54,43 @@ exports.handler = async (event, context) => {
     formData.append('kw', keyword);
     formData.append('searchkw', keyword);
 
-    const response = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`搜尋請求失敗: ${response.status}`);
+    console.log('🔄 嘗試連接司法院網站...');
+    
+    // 添加超時和重試機制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超時
+    
+    try {
+      const response = await fetch(searchUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`司法院搜尋失敗: ${response.status} ${response.statusText}`);
+      }
+      
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('司法院網站連接超時，請稍後再試');
+      }
+      
+      console.log('⚠️ 司法院網站連接失敗，使用備援搜尋');
+      throw error;
     }
 
     const html = await response.text();
