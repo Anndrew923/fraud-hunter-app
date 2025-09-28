@@ -1,11 +1,20 @@
 // 搜尋服務 - 整合法院判決書和通緝犯搜尋
 import { CourtCrawler, CourtJudgment } from '../crawlers/courtCrawler';
 import { WantedCrawler, WantedPerson } from '../crawlers/wantedCrawler';
+import { judicialCrawler, JudicialSearchParams } from '../crawlers/judicialCrawler';
 
 export interface SearchResult {
-  type: 'judgment' | 'wanted';
-  data: CourtJudgment | WantedPerson;
+  type: 'judgment' | 'wanted' | 'clean';
+  data: CourtJudgment | WantedPerson | CleanRecord;
   relevanceScore: number;
+}
+
+export interface CleanRecord {
+  name: string;
+  status: 'clean';
+  message: string;
+  searchDate: Date;
+  riskScore: 0;
 }
 
 export interface SearchOptions {
@@ -115,6 +124,25 @@ export class SearchService {
         }
       }
 
+      // 如果沒有找到任何結果，添加乾淨記錄
+      if (results.length === 0) {
+        const cleanRecord: CleanRecord = {
+          name: query,
+          status: 'clean',
+          message: '在現有資料庫中未發現相關案件記錄，此人可能為正常公民',
+          searchDate: new Date(),
+          riskScore: 0
+        };
+        
+        results.push({
+          type: 'clean',
+          data: cleanRecord,
+          relevanceScore: 100
+        });
+        
+        console.log('✅ 未發現問題記錄，此人為乾淨記錄');
+      }
+
       // 按相關性分數排序
       results.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
@@ -156,6 +184,67 @@ export class SearchService {
   // 根據姓名查詢通緝犯
   async getWantedPersonByName(name: string): Promise<WantedPerson | null> {
     return await this.wantedCrawler.getWantedPersonByName(name);
+  }
+
+  // 使用司法院法學資料檢索系統搜尋判決書
+  async searchJudicialJudgments(params: JudicialSearchParams) {
+    try {
+      console.log('開始司法院判決書搜尋:', params);
+      
+      // 搜尋判決書列表
+      const searchResults = await judicialCrawler.searchJudgments(params);
+      
+      // 取得前5筆的詳細內容
+      const detailedResults = await Promise.all(
+        searchResults.slice(0, 5).map(async (result) => {
+          try {
+            const detail = await judicialCrawler.getJudgmentDetail(result.detailUrl);
+            return {
+              type: 'judgment' as const,
+              data: detail,
+              relevanceScore: this.calculateRelevanceScore(params.keyword || '', detail.caseTitle + ' ' + detail.summary)
+            };
+          } catch (error) {
+            console.error('取得判決書詳細內容失敗:', error);
+            return null;
+          }
+        })
+      );
+
+      // 過濾掉失敗的結果
+      const validResults = detailedResults.filter(result => result !== null) as SearchResult[];
+
+      // 如果沒有找到任何結果，添加乾淨記錄
+      if (validResults.length === 0) {
+        const cleanRecord: CleanRecord = {
+          name: params.keyword || '',
+          status: 'clean',
+          message: '在司法院判決書資料庫中未發現相關案件記錄，此人可能為正常公民',
+          searchDate: new Date(),
+          riskScore: 0
+        };
+        
+        validResults.push({
+          type: 'clean',
+          data: cleanRecord,
+          relevanceScore: 100
+        });
+        
+        console.log('✅ 司法院資料庫中未發現問題記錄，此人為乾淨記錄');
+      }
+
+      // 計算統計資料
+      const stats = this.calculateSearchStats(validResults, 0);
+
+      return {
+        results: validResults,
+        stats,
+        totalAvailable: searchResults.length
+      };
+    } catch (error) {
+      console.error('司法院判決書搜尋失敗:', error);
+      throw error;
+    }
   }
 
   // 計算相關性分數

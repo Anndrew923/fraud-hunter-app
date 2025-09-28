@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "dev:fast": "node scripts/dev.js",
-    "dev:clean": "rm -rf .next && next dev --turbopack --open",
+    "dev": "node scripts/dev.js",
+    "dev:next": "next dev --turbopack",
+    "dev:clean": "rm -rf .next && node scripts/dev.js",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "setup:firebase": "node scripts/setup-firebase.js"
+    "setup:firebase": "node scripts/setup-firebase.js",
+    "test:dashboard": "node scripts/test-dashboard.js",
+    "test:judicial": "node scripts/test-judicial-crawler.js",
+    "test:real-search": "node scripts/test-real-search.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

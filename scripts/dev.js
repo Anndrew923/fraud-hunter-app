@@ -17,12 +17,15 @@ if (fs.existsSync(nextDir)) {
   }
 }
 
-// 設定環境變數
+// 設定環境變數（優化啟動速度）
 process.env.NEXT_TELEMETRY_DISABLED = '1';
 process.env.NODE_OPTIONS = '--max-old-space-size=4096';
+process.env.NEXT_PRIVATE_DEBUG_CACHE = '0';
+process.env.NEXT_PRIVATE_DEBUG_MEMORY = '0';
+process.env.NEXT_PRIVATE_DEBUG_SWC = '0';
 
 // 啟動開發伺服器
-const devProcess = spawn('npx', ['next', 'dev', '--turbopack', '--open'], {
+const devProcess = spawn('npx', ['next', 'dev', '--turbopack', '--port', '3000'], {
   stdio: 'inherit',
   shell: true,
   env: {
@@ -30,6 +33,25 @@ const devProcess = spawn('npx', ['next', 'dev', '--turbopack', '--open'], {
     NODE_OPTIONS: '--max-old-space-size=4096'
   }
 });
+
+// 延遲開啟瀏覽器（確保伺服器已啟動）
+setTimeout(() => {
+  const { exec } = require('child_process');
+  const url = 'http://localhost:3000';
+  console.log(`\n🌐 正在開啟瀏覽器: ${url}`);
+  
+  // 根據作業系統選擇開啟命令
+  const openCommand = process.platform === 'win32' ? 'start' : 
+                    process.platform === 'darwin' ? 'open' : 'xdg-open';
+  
+  exec(`${openCommand} ${url}`, (error) => {
+    if (error) {
+      console.log(`請手動開啟瀏覽器: ${url}`);
+    } else {
+      console.log('✅ 瀏覽器已開啟');
+    }
+  });
+}, 2000); // 2秒後開啟瀏覽器
 
 devProcess.on('error', (err) => {
   console.error('❌ 啟動失敗:', err);
