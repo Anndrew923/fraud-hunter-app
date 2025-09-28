@@ -1,5 +1,5 @@
 // Netlify Function for 司法院法學資料檢索系統搜尋
-const fetch = require('node-fetch');
+// 使用 Node.js 18+ 內建的 fetch API
 
 exports.handler = async (event, context) => {
   // 處理 CORS
@@ -18,13 +18,19 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('收到搜尋請求:', event.body);
+    
     const { keyword, court, caseType, startDate, endDate, page = 1 } = JSON.parse(event.body || '{}');
 
     if (!keyword) {
+      console.log('錯誤: 缺少搜尋關鍵字');
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: '缺少搜尋關鍵字' }),
+        body: JSON.stringify({ 
+          success: false,
+          error: '缺少搜尋關鍵字' 
+        }),
       };
     }
 
@@ -85,12 +91,15 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('司法院搜尋失敗:', error);
+    console.error('錯誤堆疊:', error.stack);
+    
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
         error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       }),
     };
   }

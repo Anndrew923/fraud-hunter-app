@@ -1,5 +1,5 @@
 // Netlify Function for 司法院判決書詳細內容
-const fetch = require('node-fetch');
+// 使用 Node.js 18+ 內建的 fetch API
 
 exports.handler = async (event, context) => {
   // 處理 CORS
