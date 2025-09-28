@@ -1,7 +1,7 @@
 // 搜尋服務 - 整合法院判決書和通緝犯搜尋
 import { CourtCrawler, CourtJudgment } from '../crawlers/courtCrawler';
 import { WantedCrawler, WantedPerson } from '../crawlers/wantedCrawler';
-import { judicialCrawler, JudicialSearchParams } from '../crawlers/judicialCrawler';
+import { JudicialSearchParams } from '../crawlers/judicialCrawler';
 import { RobustJudicialCrawler } from '../crawlers/robustJudicialCrawler';
 
 export interface SearchResult {

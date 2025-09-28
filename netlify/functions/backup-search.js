@@ -47,9 +47,9 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // 如果所有搜尋引擎都失敗，返回模擬結果
+    // 如果所有搜尋引擎都失敗，返回空結果
     if (results.length === 0) {
-      results = generateComprehensiveMockResults(keyword);
+      console.log('❌ 所有備援搜尋都失敗，返回空結果');
     }
 
     return {
@@ -101,63 +101,3 @@ async function searchWithDuckDuckGo(keyword) {
   return [];
 }
 
-// 生成全面的模擬結果
-function generateComprehensiveMockResults(keyword) {
-  console.log('🎭 生成全面模擬搜尋結果');
-  
-  const mockResults = [
-    {
-      caseTitle: `詐欺罪案件 - ${keyword}`,
-      caseNumber: `詐欺-${Date.now()}-001`,
-      court: '台灣高等法院',
-      judgmentDate: '2024-01-15',
-      summary: `被告 ${keyword} 犯詐欺罪，以不實方法詐騙他人財物`,
-      riskScore: 95,
-      detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-      caseReason: '詐欺',
-      plaintiff: '檢察官',
-      defendant: keyword,
-      mainRuling: '被告犯詐欺罪，處有期徒刑一年六個月',
-      factsAndReasons: '被告以不實方法詐騙被害人新台幣三百萬元，事證明確',
-      relatedLaws: ['刑法第339條第1項', '刑法第339條之4第1項第2款'],
-      previousJudgments: [],
-      source: 'backup-mock'
-    },
-    {
-      caseTitle: `詐騙集團案件 - ${keyword}`,
-      caseNumber: `詐騙-${Date.now()}-002`,
-      court: '台北地方法院',
-      judgmentDate: '2024-02-20',
-      summary: `詐騙集團成員 ${keyword} 參與組織犯罪`,
-      riskScore: 90,
-      detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-      caseReason: '詐欺、組織犯罪',
-      plaintiff: '檢察官',
-      defendant: keyword,
-      mainRuling: '被告犯詐欺罪，處有期徒刑二年',
-      factsAndReasons: '被告參與詐騙集團，共同詐騙多名被害人',
-      relatedLaws: ['刑法第339條之4', '組織犯罪防制條例第3條'],
-      previousJudgments: [],
-      source: 'backup-mock'
-    },
-    {
-      caseTitle: `洗錢防制法案件 - ${keyword}`,
-      caseNumber: `洗錢-${Date.now()}-003`,
-      court: '新北地方法院',
-      judgmentDate: '2024-03-10',
-      summary: `被告 ${keyword} 涉及洗錢防制法案件`,
-      riskScore: 85,
-      detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-      caseReason: '洗錢防制法',
-      plaintiff: '檢察官',
-      defendant: keyword,
-      mainRuling: '被告犯洗錢防制法第14條第1項，處有期徒刑八個月',
-      factsAndReasons: '被告協助詐騙集團洗錢，隱匿犯罪所得',
-      relatedLaws: ['洗錢防制法第14條第1項'],
-      previousJudgments: [],
-      source: 'backup-mock'
-    }
-  ];
-
-  return mockResults;
-}

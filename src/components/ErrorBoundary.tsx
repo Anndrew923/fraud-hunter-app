@@ -22,9 +22,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {
     // 靜默記錄錯誤，避免控制台噪音
-    console.error('ErrorBoundary 捕獲錯誤:', error.message);
+    console.error('ErrorBoundary 捕獲錯誤:', _error.message);
   }
 
   resetError = () => {

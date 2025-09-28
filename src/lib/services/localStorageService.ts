@@ -7,7 +7,7 @@ export interface StorageConfig {
 
 export interface StoredData {
   id: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   expiry: number;
   compressed?: boolean;
@@ -29,7 +29,7 @@ export class LocalStorageService {
   /**
    * 儲存搜尋結果
    */
-  saveSearchResult(query: string, results: any[]): void {
+  saveSearchResult(query: string, results: unknown[]): void {
     try {
       const key = `${this.prefix}search_${this.generateId(query)}`;
       const data: StoredData = {
@@ -60,7 +60,7 @@ export class LocalStorageService {
   /**
    * 取得搜尋結果
    */
-  getSearchResult(query: string): any[] | null {
+  getSearchResult(query: string): unknown[] | null {
     try {
       const key = `${this.prefix}search_${this.generateId(query)}`;
       const stored = localStorage.getItem(key);
@@ -77,7 +77,7 @@ export class LocalStorageService {
         return null;
       }
 
-      return data.data.results;
+      return (data.data as { results: unknown[] }).results;
     } catch (error) {
       console.error('取得搜尋結果失敗:', error);
       return null;
@@ -87,7 +87,7 @@ export class LocalStorageService {
   /**
    * 儲存判決書詳細內容
    */
-  saveJudgmentDetail(caseNumber: string, detail: any): void {
+  saveJudgmentDetail(caseNumber: string, detail: unknown): void {
     try {
       const key = `${this.prefix}judgment_${this.generateId(caseNumber)}`;
       const data: StoredData = {
@@ -114,7 +114,7 @@ export class LocalStorageService {
   /**
    * 取得判決書詳細內容
    */
-  getJudgmentDetail(caseNumber: string): any | null {
+  getJudgmentDetail(caseNumber: string): unknown | null {
     try {
       const key = `${this.prefix}judgment_${this.generateId(caseNumber)}`;
       const stored = localStorage.getItem(key);
@@ -141,8 +141,8 @@ export class LocalStorageService {
   /**
    * 取得所有搜尋歷史
    */
-  getAllSearchHistory(): Array<{query: string, results: any[], timestamp: number}> {
-    const history: Array<{query: string, results: any[], timestamp: number}> = [];
+  getAllSearchHistory(): Array<{query: string, results: unknown[], timestamp: number}> {
+    const history: Array<{query: string, results: unknown[], timestamp: number}> = [];
     
     try {
       for (let i = 0; i < localStorage.length; i++) {
@@ -157,8 +157,8 @@ export class LocalStorageService {
             // 檢查是否過期
             if (Date.now() <= data.expiry) {
               history.push({
-                query: data.data.query,
-                results: data.data.results,
+                query: (data.data as { query: string }).query,
+                results: (data.data as { results: unknown[] }).results,
                 timestamp: data.timestamp
               });
             }

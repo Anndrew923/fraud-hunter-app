@@ -156,9 +156,9 @@ async function performMultiStrategySearch(params) {
     console.log('⚠️ 策略 2 失敗:', error.message);
   }
 
-  // 策略 3: 模擬搜尋結果（最後手段）
-  console.log('📋 策略 3: 生成模擬搜尋結果');
-  return generateMockResults(keyword, court, caseType);
+  // 所有真實搜尋都失敗，返回空結果
+  console.log('❌ 所有真實搜尋策略都失敗，返回空結果');
+  return [];
 }
 
 // 直接搜尋司法院
@@ -212,47 +212,6 @@ async function searchWithProxy(keyword, court, caseType, startDate, endDate, pag
   return [];
 }
 
-// 生成模擬搜尋結果
-function generateMockResults(keyword, court, caseType) {
-  console.log('🎭 生成模擬搜尋結果（用於測試）');
-  
-  const mockResults = [
-    {
-      caseTitle: `詐欺案件 - ${keyword}`,
-      caseNumber: `詐欺-${Date.now()}-001`,
-      court: court || '台灣高等法院',
-      judgmentDate: '2024-01-15',
-      summary: `涉及 ${keyword} 的詐欺案件，經法院審理後判決有罪`,
-      riskScore: 85,
-      detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?jyear=113&jcase=詐欺&jno=001&jcheck=1&jd=20240115&keyword=${encodeURIComponent(keyword)}`,
-      caseReason: '詐欺',
-      plaintiff: '檢察官',
-      defendant: keyword,
-      mainRuling: '被告犯詐欺罪，處有期徒刑一年',
-      factsAndReasons: '被告以不實方法詐騙他人財物，事證明確',
-      relatedLaws: ['刑法第339條', '刑法第339條之4'],
-      previousJudgments: []
-    },
-    {
-      caseTitle: `詐騙集團案件 - ${keyword}`,
-      caseNumber: `詐騙-${Date.now()}-002`,
-      court: court || '台北地方法院',
-      judgmentDate: '2024-02-20',
-      summary: `詐騙集團成員 ${keyword} 參與詐騙行為`,
-      riskScore: 90,
-      detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?jyear=113&jcase=詐騙&jno=002&jcheck=1&jd=20240220&keyword=${encodeURIComponent(keyword)}`,
-      caseReason: '詐欺',
-      plaintiff: '檢察官',
-      defendant: keyword,
-      mainRuling: '被告犯詐欺罪，處有期徒刑二年',
-      factsAndReasons: '被告參與詐騙集團，共同詐騙被害人',
-      relatedLaws: ['刑法第339條之4', '組織犯罪防制條例'],
-      previousJudgments: []
-    }
-  ];
-
-  return mockResults;
-}
 
 // 解析搜尋結果
 function parseSearchResults(html, keyword) {

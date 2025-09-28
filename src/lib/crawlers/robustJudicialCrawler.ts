@@ -46,13 +46,11 @@ export class RobustJudicialCrawler {
   async searchJudgments(params: JudicialSearchParams): Promise<JudicialSearchResult[]> {
     console.log('🔥 啟動多重備援搜尋系統 - 讓詐騙犯無所遁形！', params);
     
-    // 搜尋策略列表（按優先順序）
+    // 搜尋策略列表（只使用真實資料，避免毀謗風險）
     const searchStrategies = [
-      () => this.searchWithSimpleFunction(params),
-      () => this.searchWithRobustFunction(params),
-      () => this.searchWithBackupFunction(params),
       () => this.searchWithOriginalFunction(params),
-      () => this.searchWithMockData(params)
+      () => this.searchWithRobustFunction(params),
+      () => this.searchWithBackupFunction(params)
     ];
 
     // 嘗試每個搜尋策略
@@ -68,7 +66,7 @@ export class RobustJudicialCrawler {
           console.log(`⚠️ 策略 ${i + 1} 無結果，嘗試下一個策略`);
         }
       } catch (error) {
-        console.log(`❌ 策略 ${i + 1} 失敗:`, error.message);
+        console.log(`❌ 策略 ${i + 1} 失敗:`, error instanceof Error ? error.message : String(error));
       }
     }
 
@@ -160,54 +158,6 @@ export class RobustJudicialCrawler {
     return data.success ? data.results : [];
   }
 
-  /**
-   * 策略 4: 使用模擬資料（最後手段）
-   */
-  private async searchWithMockData(params: JudicialSearchParams): Promise<JudicialSearchResult[]> {
-    console.log('🎭 使用模擬資料（最後手段）');
-    
-    const { keyword } = params;
-    if (!keyword) return [];
-
-    // 生成模擬搜尋結果
-    const mockResults: JudicialSearchResult[] = [
-      {
-        serialNumber: 1,
-        caseNumber: `詐欺-${Date.now()}-001`,
-        judgmentDate: '2024-01-15',
-        caseReason: '詐欺',
-        summary: `涉及 ${keyword} 的詐欺案件，經法院審理後判決有罪`,
-        contentSize: '15KB',
-        detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-        riskScore: 95,
-        source: 'mock-data'
-      },
-      {
-        serialNumber: 2,
-        caseNumber: `詐騙-${Date.now()}-002`,
-        judgmentDate: '2024-02-20',
-        caseReason: '詐欺',
-        summary: `詐騙集團成員 ${keyword} 參與詐騙行為`,
-        contentSize: '22KB',
-        detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-        riskScore: 90,
-        source: 'mock-data'
-      },
-      {
-        serialNumber: 3,
-        caseNumber: `洗錢-${Date.now()}-003`,
-        judgmentDate: '2024-03-10',
-        caseReason: '洗錢防制法',
-        summary: `被告 ${keyword} 涉及洗錢防制法案件`,
-        contentSize: '18KB',
-        detailUrl: `https://arch.judicial.gov.tw/FJUD/FJUDQRY02_1.aspx?keyword=${encodeURIComponent(keyword)}`,
-        riskScore: 85,
-        source: 'mock-data'
-      }
-    ];
-
-    return mockResults;
-  }
 
   /**
    * 獲取判決書詳細內容
@@ -238,33 +188,11 @@ export class RobustJudicialCrawler {
     } catch (error) {
       console.error('獲取判決書詳細內容失敗:', error);
       
-      // 返回模擬詳細內容
-      return this.generateMockDetail(detailUrl);
+      // 搜尋失敗時返回空結果，不使用模擬資料
+      throw new Error('無法獲取判決書詳細內容');
     }
   }
 
-  /**
-   * 生成模擬詳細內容
-   */
-  private generateMockDetail(detailUrl: string): JudicialDetailResult {
-    console.log('🎭 生成模擬詳細內容');
-    
-    return {
-      caseTitle: '詐欺案件詳細內容',
-      caseNumber: `詐欺-${Date.now()}-001`,
-      court: '台灣高等法院',
-      judgmentDate: '2024-01-15',
-      caseReason: '詐欺',
-      summary: '被告以不實方法詐騙他人財物，事證明確',
-      riskScore: 95,
-      plaintiff: '檢察官',
-      defendant: '被告',
-      mainRuling: '被告犯詐欺罪，處有期徒刑一年六個月',
-      factsAndReasons: '被告以不實方法詐騙被害人新台幣三百萬元，事證明確，應依法論處',
-      relatedLaws: ['刑法第339條第1項', '刑法第339條之4第1項第2款'],
-      previousJudgments: []
-    };
-  }
 
   /**
    * 獲取 Function URL
