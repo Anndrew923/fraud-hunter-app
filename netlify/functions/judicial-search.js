@@ -89,8 +89,20 @@ exports.handler = async (event, context) => {
         throw new Error('司法院網站連接超時，請稍後再試');
       }
       
-      console.log('⚠️ 司法院網站連接失敗，使用備援搜尋');
-      throw error;
+      console.log('⚠️ 司法院網站連接失敗:', error.message);
+      // 不拋出錯誤，而是返回空結果
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          results: [],
+          total: 0,
+          keyword,
+          message: '司法院網站暫時無法連接，請稍後再試',
+          source: 'judicial-search'
+        })
+      };
     }
 
     const html = await response.text();

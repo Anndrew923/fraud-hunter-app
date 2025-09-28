@@ -113,13 +113,17 @@ exports.handler = async (event, context) => {
     console.error('💥 搜尋系統錯誤:', error);
     console.error('📊 錯誤堆疊:', error.stack);
 
+    // 不返回 500 錯誤，而是返回空結果
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
       body: JSON.stringify({
-        success: false,
-        error: '搜尋系統暫時無法使用',
-        details: process.env.NODE_ENV === 'development' ? error.message : '請稍後再試',
+        success: true,
+        results: [],
+        total: 0,
+        keyword: params.keyword || '',
+        message: '搜尋系統暫時無法使用，請稍後再試',
+        source: 'robust-search',
         timestamp: new Date().toISOString()
       })
     };

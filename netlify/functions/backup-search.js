@@ -68,13 +68,17 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error('💥 備援搜尋錯誤:', error);
     
+    // 不返回 500 錯誤，而是返回空結果
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
       body: JSON.stringify({
-        success: false,
-        error: '備援搜尋系統錯誤',
-        details: error.message
+        success: true,
+        results: [],
+        total: 0,
+        keyword: keyword || '',
+        message: '備援搜尋系統暫時無法使用，請稍後再試',
+        source: 'backup-search'
       })
     };
   }

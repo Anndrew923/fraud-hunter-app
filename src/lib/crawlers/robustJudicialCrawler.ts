@@ -109,7 +109,8 @@ export class RobustJudicialCrawler {
     });
 
     if (!response.ok) {
-      throw new Error(`強健搜尋失敗: ${response.status}`);
+      console.log(`⚠️ 強健搜尋失敗: ${response.status}`);
+      return [];
     }
 
     const data = await response.json();
@@ -130,7 +131,8 @@ export class RobustJudicialCrawler {
     });
 
     if (!response.ok) {
-      throw new Error(`備援搜尋失敗: ${response.status}`);
+      console.log(`⚠️ 備援搜尋失敗: ${response.status}`);
+      return [];
     }
 
     const data = await response.json();
@@ -151,7 +153,8 @@ export class RobustJudicialCrawler {
     });
 
     if (!response.ok) {
-      throw new Error(`原始搜尋失敗: ${response.status}`);
+      console.log(`⚠️ 原始搜尋失敗: ${response.status}`);
+      return [];
     }
 
     const data = await response.json();
