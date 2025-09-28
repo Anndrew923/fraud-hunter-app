@@ -49,8 +49,10 @@ export class JudicialCrawler {
       
       // 使用 Netlify Function 來避免 CORS 問題
       const functionUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://fraud-hunter.netlify.app/.netlify/functions/judicial-search'
-        : 'http://localhost:8888/.netlify/functions/judicial-search';
+        ? `${window.location.origin}/.netlify/functions/judicial-search`
+        : typeof window !== 'undefined' && window.location.port === '8888'
+          ? `${window.location.origin}/.netlify/functions/judicial-search`
+          : 'http://localhost:8888/.netlify/functions/judicial-search';
 
       const response = await fetch(functionUrl, {
         method: 'POST',
@@ -90,8 +92,10 @@ export class JudicialCrawler {
       
       // 使用 Netlify Function 來避免 CORS 問題
       const functionUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://fraud-hunter.netlify.app/.netlify/functions/judicial-detail'
-        : 'http://localhost:8888/.netlify/functions/judicial-detail';
+        ? `${window.location.origin}/.netlify/functions/judicial-detail`
+        : typeof window !== 'undefined' && window.location.port === '8888'
+          ? `${window.location.origin}/.netlify/functions/judicial-detail`
+          : 'http://localhost:8888/.netlify/functions/judicial-detail';
 
       const response = await fetch(functionUrl, {
         method: 'POST',
