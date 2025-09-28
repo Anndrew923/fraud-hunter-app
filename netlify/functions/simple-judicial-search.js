@@ -29,21 +29,66 @@ exports.handler = async (event, context) => {
 
     console.log('🔍 搜尋關鍵字:', keyword);
 
-    // 直接搜尋結果頁面
-    const searchUrl = `https://judgment.judicial.gov.tw/FJUD/qryresult.aspx?kw=${encodeURIComponent(keyword)}`;
+    // 第一步：獲取搜尋表單頁面
+    const formUrl = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
+    console.log('🔄 第一步：獲取搜尋表單頁面...');
     
-    console.log('🔄 嘗試連接司法院搜尋結果頁面...');
-    
-    const response = await fetch(searchUrl, {
+    const formResponse = await fetch(formUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cache-Control': 'no-cache',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
         'Connection': 'keep-alive',
-        'Referer': 'https://judgment.judicial.gov.tw/LAW_Mobile_FJUD//FJUD/default.aspx',
+        'Upgrade-Insecure-Requests': '1'
+      }
+    });
+
+    if (!formResponse.ok) {
+      throw new Error(`獲取表單失敗: ${formResponse.status} ${formResponse.statusText}`);
+    }
+
+    const formHtml = await formResponse.text();
+    console.log('📄 表單頁面 HTML 長度:', formHtml.length);
+
+    // 提取 ViewState 和相關參數
+    const viewStateMatch = formHtml.match(/name="__VIEWSTATE" id="__VIEWSTATE" value="([^"]*)"/);
+    const viewStateGeneratorMatch = formHtml.match(/name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="([^"]*)"/);
+    const eventValidationMatch = formHtml.match(/name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="([^"]*)"/);
+
+    const viewState = viewStateMatch ? viewStateMatch[1] : '';
+    const viewStateGenerator = viewStateGeneratorMatch ? viewStateGeneratorMatch[1] : '';
+    const eventValidation = eventValidationMatch ? eventValidationMatch[1] : '';
+
+    console.log('🔍 提取的參數:');
+    console.log('  - ViewState:', viewState ? '已獲取' : '未獲取');
+    console.log('  - ViewStateGenerator:', viewStateGenerator ? '已獲取' : '未獲取');
+    console.log('  - EventValidation:', eventValidation ? '已獲取' : '未獲取');
+
+    // 第二步：提交搜尋表單
+    const searchUrl = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
+    console.log('🔄 第二步：提交搜尋表單...');
+    
+    const formData = new URLSearchParams();
+    formData.append('__VIEWSTATE', viewState);
+    formData.append('__VIEWSTATEGENERATOR', viewStateGenerator);
+    formData.append('__EVENTVALIDATION', eventValidation);
+    formData.append('txtKW', keyword);
+    formData.append('judtype', 'JUDBOOK');
+    formData.append('ctl00$cp_content$btnSubmit', '送出查詢');
+
+    const response = await fetch(searchUrl, {
+      method: 'POST',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Referer': 'https://judgment.judicial.gov.tw/FJUD/default.aspx'
       },
+      body: formData.toString()
     });
 
     if (!response.ok) {
