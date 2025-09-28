@@ -1,4 +1,4 @@
-import { ThemeConfig, Theme } from '@/contexts/ThemeContext';
+import { Theme } from '@/contexts/ThemeContext';
 
 // 預定義的類名映射，避免動態類名問題
 const themeClassMaps: Record<Theme, Record<string, string>> = {

@@ -591,7 +591,7 @@ export default function HomePage() {
           ].map(({ key, label, icon: Icon, comingSoon }) => (
             <button
               key={key}
-              onClick={() => !comingSoon && setActiveTab(key as any)}
+              onClick={() => !comingSoon && setActiveTab(key as 'home' | 'search' | 'rankings' | 'reports' | 'settings')}
               disabled={comingSoon}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors relative ${
                 activeTab === key

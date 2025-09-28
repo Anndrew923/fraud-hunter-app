@@ -5,7 +5,7 @@ import { judicialCrawler, JudicialSearchParams } from '../crawlers/judicialCrawl
 
 export interface SearchResult {
   type: 'judgment' | 'wanted' | 'clean';
-  data: CourtJudgment | WantedPerson | CleanRecord | any;
+  data: CourtJudgment | WantedPerson | CleanRecord;
   relevanceScore: number;
 }
 
@@ -212,7 +212,7 @@ export class SearchService {
       );
 
       // 過濾掉失敗的結果
-      const validResults = detailedResults.filter(result => result !== null) as SearchResult[];
+      const validResults = detailedResults.filter(result => result !== null) as unknown as SearchResult[];
 
       // 如果沒有找到任何結果，添加乾淨記錄
       if (validResults.length === 0) {

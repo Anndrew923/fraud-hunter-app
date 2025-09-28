@@ -1,4 +1,4 @@
-import { CourtJudgment } from './courtCrawler';
+// import { CourtJudgment } from './courtCrawler';
 
 export interface JudicialSearchParams {
   keyword?: string;
@@ -229,7 +229,9 @@ export class JudicialCrawler {
   /**
    * 解析判決書詳細內容
    */
-  private parseJudgmentDetail(html: string, detailUrl: string): JudicialDetailResult {
+  private parseJudgmentDetail(html: string, _detailUrl: string): JudicialDetailResult {
+    // 暫時忽略 detailUrl 參數
+    void _detailUrl;
     // 提取裁判字號
     const caseNumberMatch = html.match(/裁判字號[^>]*>([^<]+)</);
     
