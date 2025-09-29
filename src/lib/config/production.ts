@@ -11,11 +11,11 @@ export const productionConfig = {
   // 儀表板設定
   dashboard: {
     // 生產環境下使用更短的超時時間
-    timeout: process.env.NODE_ENV === 'production' ? 2000 : 5000,
+    timeout: process.env.NODE_ENV === 'production' ? 5000 : 5000,
     // 生產環境下禁用重試
-    maxRetries: process.env.NODE_ENV === 'production' ? 1 : 3,
-    // 生產環境下優先使用預設資料
-    preferDefaultData: process.env.NODE_ENV === 'production'
+    maxRetries: process.env.NODE_ENV === 'production' ? 2 : 3,
+    // 生產環境下嘗試真實抓取，失敗時才使用預設資料
+    preferDefaultData: false
   },
   
   // 錯誤處理設定

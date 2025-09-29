@@ -1,12 +1,50 @@
-// 搜尋服務 - 整合法院判決書和通緝犯搜尋
+// 智能搜尋服務 - 整合法院判決書和通緝犯搜尋
 import { CourtCrawler, CourtJudgment } from '../crawlers/courtCrawler';
 import { WantedCrawler, WantedPerson } from '../crawlers/wantedCrawler';
-import { JudicialSearchParams } from '../crawlers/judicialCrawler';
-import { RobustJudicialCrawler } from '../crawlers/robustJudicialCrawler';
+
+// 司法搜尋參數接口
+export interface JudicialSearchParams {
+  keyword?: string;
+  court?: string;
+  caseType?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+}
+
+// 司法搜尋結果接口
+export interface JudicialSearchResult {
+  serialNumber: number;
+  caseNumber: string;
+  judgmentDate: string;
+  caseReason: string;
+  summary: string;
+  contentSize: string;
+  detailUrl: string;
+  riskScore?: number;
+  source?: string;
+}
+
+// 司法詳細結果接口
+export interface JudicialDetailResult {
+  caseTitle: string;
+  caseNumber: string;
+  court: string;
+  judgmentDate: string;
+  caseReason: string;
+  summary: string;
+  riskScore: number;
+  plaintiff?: string;
+  defendant?: string;
+  mainRuling: string;
+  factsAndReasons: string;
+  relatedLaws: string[];
+  previousJudgments: string[];
+}
 
 export interface SearchResult {
-  type: 'judgment' | 'wanted' | 'clean';
-  data: CourtJudgment | WantedPerson | CleanRecord;
+  type: 'judgment' | 'wanted' | 'clean' | 'judicial';
+  data: CourtJudgment | WantedPerson | CleanRecord | JudicialDetailResult;
   relevanceScore: number;
 }
 
@@ -41,7 +79,6 @@ export interface SearchStats {
 export class SearchService {
   private courtCrawler: CourtCrawler;
   private wantedCrawler: WantedCrawler;
-  private robustJudicialCrawler: RobustJudicialCrawler;
   private searchHistory: Array<{
     query: string;
     results: SearchResult[];
@@ -52,7 +89,6 @@ export class SearchService {
   constructor() {
     this.courtCrawler = new CourtCrawler();
     this.wantedCrawler = new WantedCrawler();
-    this.robustJudicialCrawler = new RobustJudicialCrawler();
   }
 
   // 綜合搜尋
@@ -189,36 +225,38 @@ export class SearchService {
     return await this.wantedCrawler.getWantedPersonByName(name);
   }
 
-  // 使用強健搜尋系統搜尋司法院判決書 - 讓詐騙犯無所遁形！
+  // 智能司法搜尋 - 使用新的Netlify Functions
   async searchJudicialJudgments(params: JudicialSearchParams) {
     try {
-      console.log('🔥 啟動強健搜尋系統 - 讓詐騙犯無所遁形！', params);
+      console.log('🔥 啟動智能司法搜尋系統 - 讓詐騙犯無所遁形！', params);
       
-      // 使用強健搜尋系統搜尋判決書列表
-      const searchResults = await this.robustJudicialCrawler.searchJudgments(params);
-      
-      // 取得前5筆的詳細內容
-      const detailedResults = await Promise.all(
-        searchResults.slice(0, 5).map(async (result) => {
-          try {
-            const detail = await this.robustJudicialCrawler.getJudgmentDetail(result.detailUrl);
-            return {
-              type: 'judgment' as const,
-              data: detail,
-              relevanceScore: this.calculateRelevanceScore(params.keyword || '', detail.caseTitle + ' ' + detail.summary)
-            };
-          } catch (error) {
-            console.error('取得判決書詳細內容失敗:', error);
-            return null;
-          }
-        })
-      );
+      // 使用新的智能司法搜尋 Function
+      const functionUrl = this.getFunctionUrl('smart-judicial-search');
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
 
-      // 過濾掉失敗的結果
-      const validResults = detailedResults.filter(result => result !== null) as unknown as SearchResult[];
+      if (!response.ok) {
+        throw new Error(`司法搜尋失敗: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || '司法搜尋失敗');
+      }
+
+      // 轉換結果格式
+      const results: SearchResult[] = data.results.map((result: JudicialDetailResult) => ({
+        type: 'judicial' as const,
+        data: result,
+        relevanceScore: this.calculateRelevanceScore(params.keyword || '', result.caseTitle + ' ' + result.summary)
+      }));
 
       // 如果沒有找到任何結果，添加乾淨記錄
-      if (validResults.length === 0) {
+      if (results.length === 0) {
         const cleanRecord: CleanRecord = {
           name: params.keyword || '',
           status: 'clean',
@@ -227,7 +265,7 @@ export class SearchService {
           riskScore: 0
         };
         
-        validResults.push({
+        results.push({
           type: 'clean',
           data: cleanRecord,
           relevanceScore: 100
@@ -237,16 +275,81 @@ export class SearchService {
       }
 
       // 計算統計資料
-      const stats = this.calculateSearchStats(validResults, 0);
+      const stats = this.calculateSearchStats(results, 0);
 
       return {
-        results: validResults,
+        results,
         stats,
-        totalAvailable: searchResults.length
+        totalAvailable: data.totalAvailable || results.length
       };
     } catch (error) {
-      console.error('司法院判決書搜尋失敗:', error);
+      console.error('司法搜尋失敗:', error);
+      
+      // 搜尋失敗時返回乾淨記錄
+      const cleanRecord: CleanRecord = {
+        name: params.keyword || '',
+        status: 'clean',
+        message: '司法搜尋系統暫時無法使用，無法確認此人的司法記錄',
+        searchDate: new Date(),
+        riskScore: 0
+      };
+      
+      return {
+        results: [{
+          type: 'clean',
+          data: cleanRecord,
+          relevanceScore: 100
+        }],
+        stats: {
+          totalResults: 1,
+          judgmentCount: 0,
+          wantedCount: 0,
+          averageRiskScore: 0,
+          searchTime: 0
+        },
+        totalAvailable: 0
+      };
+    }
+  }
+
+  // 獲取司法判決書詳細內容
+  async getJudicialDetail(detailUrl: string): Promise<JudicialDetailResult> {
+    try {
+      console.log('🔍 獲取司法判決書詳細內容:', detailUrl);
+      
+      const functionUrl = this.getFunctionUrl('judicial-detail');
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ detailUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`詳細內容請求失敗: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ 成功獲取司法判決書詳細內容');
+        return data.detail;
+      } else {
+        throw new Error(data.error || '獲取詳細內容失敗');
+      }
+    } catch (error) {
+      console.error('獲取司法判決書詳細內容失敗:', error);
       throw error;
+    }
+  }
+
+  // 獲取 Function URL
+  private getFunctionUrl(functionName: string): string {
+    if (process.env.NODE_ENV === 'production') {
+      return `${window.location.origin}/.netlify/functions/${functionName}`;
+    } else if (typeof window !== 'undefined' && window.location.port === '8888') {
+      return `${window.location.origin}/.netlify/functions/${functionName}`;
+    } else {
+      return `http://localhost:8888/.netlify/functions/${functionName}`;
     }
   }
 
@@ -280,14 +383,18 @@ export class SearchService {
 
   // 計算搜尋統計
   private calculateSearchStats(results: SearchResult[], searchTime: number): SearchStats {
-    const judgmentCount = results.filter(r => r.type === 'judgment').length;
+    const judgmentCount = results.filter(r => r.type === 'judgment' || r.type === 'judicial').length;
     const wantedCount = results.filter(r => r.type === 'wanted').length;
     
     const riskScores = results.map(r => {
       if (r.type === 'judgment') {
         return (r.data as CourtJudgment).riskScore;
-      } else {
+      } else if (r.type === 'judicial') {
+        return (r.data as JudicialDetailResult).riskScore;
+      } else if (r.type === 'wanted') {
         return (r.data as WantedPerson).riskScore;
+      } else {
+        return 0; // clean record
       }
     });
     
